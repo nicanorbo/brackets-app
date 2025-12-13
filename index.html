@@ -1,339 +1,294 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Crown, Glasses, Heart, Star, Trophy, Clock, Gift, AlertCircle, Volume2, VolumeX } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brackets Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #111827;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .tooth-happy {
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .spin-slow {
+            animation: spin 3s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6">
+    <div id="app" class="max-w-md mx-auto"></div>
 
-export default function BracketsStreakApp() {
-  const [streak, setStreak] = useState(0);
-  const [points, setPoints] = useState(0);
-  const [lastCheckin, setLastCheckin] = useState(null);
-  const [missions, setMissions] = useState([
-    { id: 1, time: '12:00', completed: false, label: 'Mediodía' },
-    { id: 2, time: '15:00', completed: false, label: 'Tarde' },
-    { id: 3, time: '22:00', completed: false, label: 'Noche' }
-  ]);
-  const [cosmetics, setCosmetics] = useState({
-    hat: false,
-    bowtie: false,
-    crown: false,
-    star: false
-  });
-  const [equippedCosmetic, setEquippedCosmetic] = useState(null);
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [musicPlaying, setMusicPlaying] = useState(false);
-  const audioRef = useRef(null);
+    <script>
+        // Estado de la aplicación
+        let state = {
+            streak: 0,
+            points: 0,
+            lastCheckin: null,
+            missions: [
+                { id: 1, time: '12:00', completed: false, label: 'Mediodía' },
+                { id: 2, time: '15:00', completed: false, label: 'Tarde' },
+                { id: 3, time: '22:00', completed: false, label: 'Noche' }
+            ],
+            cosmetics: {
+                hat: false,
+                bowtie: false,
+                crown: false,
+                star: false
+            },
+            equippedCosmetic: null,
+            musicPlaying: false
+        };
 
-  useEffect(() => {
-    const savedData = localStorage.getItem('bracketsData');
-    if (savedData) {
-      const data = JSON.parse(savedData);
-      setStreak(data.streak || 0);
-      setPoints(data.points || 0);
-      setLastCheckin(data.lastCheckin || null);
-      setMissions(data.missions || missions);
-      setCosmetics(data.cosmetics || cosmetics);
-      setEquippedCosmetic(data.equippedCosmetic || null);
-    }
-    
-    // Inicializar audio
-    audioRef.current = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3');
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.3;
-  }, []);
+        // Audio
+        const audio = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3');
+        audio.loop = true;
+        audio.volume = 0.3;
 
-  useEffect(() => {
-    const data = {
-      streak,
-      points,
-      lastCheckin,
-      missions,
-      cosmetics,
-      equippedCosmetic
-    };
-    localStorage.setItem('bracketsData', JSON.stringify(data));
-  }, [streak, points, lastCheckin, missions, cosmetics, equippedCosmetic]);
+        // Cargar datos guardados
+        function loadData() {
+            const saved = localStorage.getItem('bracketsData');
+            if (saved) {
+                state = { ...state, ...JSON.parse(saved) };
+            }
+        }
 
-  const toggleMusic = () => {
-    if (audioRef.current) {
-      if (musicPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch(e => console.log('Audio play failed:', e));
-      }
-      setMusicPlaying(!musicPlaying);
-    }
-  };
+        // Guardar datos
+        function saveData() {
+            localStorage.setItem('bracketsData', JSON.stringify(state));
+        }
 
-  const resetMissionsIfNewDay = () => {
-    const today = new Date().toDateString();
-    if (lastCheckin !== today) {
-      setMissions(missions.map(m => ({ ...m, completed: false })));
-      return true;
-    }
-    return false;
-  };
+        // Toggle música
+        function toggleMusic() {
+            if (state.musicPlaying) {
+                audio.pause();
+            } else {
+                audio.play().catch(e => console.log('Audio error:', e));
+            }
+            state.musicPlaying = !state.musicPlaying;
+            render();
+        }
 
-  const addStreakDay = () => {
-    const today = new Date().toDateString();
-    if (lastCheckin !== today) {
-      setStreak(streak + 1);
-      setLastCheckin(today);
-      resetMissionsIfNewDay();
-    }
-  };
+        // Completar misión
+        function completeMission(missionId) {
+            const mission = state.missions.find(m => m.id === missionId);
+            if (!mission.completed) {
+                mission.completed = true;
+                state.points += 10;
+                
+                const today = new Date().toDateString();
+                if (state.lastCheckin !== today) {
+                    state.streak++;
+                    state.lastCheckin = today;
+                }
+                
+                saveData();
+                render();
+            }
+        }
 
-  const completeMission = (missionId) => {
-    const mission = missions.find(m => m.id === missionId);
-    if (!mission.completed) {
-      setMissions(missions.map(m => 
-        m.id === missionId ? { ...m, completed: true } : m
-      ));
-      setPoints(points + 10);
-      addStreakDay();
-    }
-  };
+        // Reiniciar racha
+        function resetStreak() {
+            if (confirm('¿Estás seguro? Esto reiniciará tu racha a 0 días.')) {
+                state.streak = 0;
+                saveData();
+                render();
+            }
+        }
 
-  const handleBracketLoss = () => {
-    setStreak(0);
-    setShowResetModal(false);
-    if (audioRef.current && musicPlaying) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current.play();
-    }
-  };
+        // Comprar cosmético
+        function buyCosmetic(name, cost) {
+            if (state.points >= cost && !state.cosmetics[name]) {
+                state.points -= cost;
+                state.cosmetics[name] = true;
+                saveData();
+                render();
+            }
+        }
 
-  const buyCosmetic = (cosmeticName, cost) => {
-    if (points >= cost && !cosmetics[cosmeticName]) {
-      setPoints(points - cost);
-      setCosmetics({ ...cosmetics, [cosmeticName]: true });
-    }
-  };
+        // Equipar cosmético
+        function equipCosmetic(name) {
+            state.equippedCosmetic = state.equippedCosmetic === name ? null : name;
+            saveData();
+            render();
+        }
 
-  const completedMissions = missions.filter(m => m.completed).length;
-  const isHappy = completedMissions >= 2;
+        // Dibujar diente
+        function drawTooth() {
+            const completedMissions = state.missions.filter(m => m.completed).length;
+            const isHappy = completedMissions >= 2;
+            
+            let cosmeticHTML = '';
+            if (state.equippedCosmetic === 'crown') {
+                cosmeticHTML = `<div class="absolute -top-8 left-1/2 transform -translate-x-1/2 text-4xl">👑</div>`;
+            } else if (state.equippedCosmetic === 'hat') {
+                cosmeticHTML = `<div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-20 h-10 bg-red-600 rounded-t-full shadow-lg"></div>`;
+            } else if (state.equippedCosmetic === 'star') {
+                cosmeticHTML = `<div class="absolute -top-2 -right-6 text-4xl spin-slow">⭐</div>`;
+            }
 
-  const ToothCharacter = () => (
-    <div className="relative flex items-center justify-center">
-      <svg width="150" height="180" viewBox="0 0 150 180" className="drop-shadow-2xl">
-        {/* Cuerpo del diente */}
-        <defs>
-          <linearGradient id="toothGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="100%" stopColor="#f0f0f0" />
-          </linearGradient>
-        </defs>
-        
-        {/* Forma del diente */}
-        <path
-          d="M 75 20 Q 50 20, 40 40 L 40 120 Q 40 140, 50 150 L 65 170 Q 75 180, 85 170 L 100 150 Q 110 140, 110 120 L 110 40 Q 100 20, 75 20"
-          fill="url(#toothGradient)"
-          stroke="#e0e0e0"
-          strokeWidth="2"
-        />
-        
-        {/* Brillo del diente */}
-        <ellipse cx="60" cy="50" rx="15" ry="25" fill="white" opacity="0.4" />
-        
-        {/* Lentes */}
-        <g transform="translate(75, 70)">
-          <ellipse cx="-18" cy="0" rx="15" ry="18" fill="none" stroke="#333" strokeWidth="3" />
-          <ellipse cx="18" cy="0" rx="15" ry="18" fill="none" stroke="#333" strokeWidth="3" />
-          <line x1="-3" y1="0" x2="3" y2="0" stroke="#333" strokeWidth="3" />
-          <ellipse cx="-18" cy="0" rx="15" ry="18" fill="#87CEEB" opacity="0.3" />
-          <ellipse cx="18" cy="0" rx="15" ry="18" fill="#87CEEB" opacity="0.3" />
-        </g>
-        
-        {/* Ojos detrás de los lentes */}
-        <circle cx="57" cy="70" r="4" fill="#333" className={isHappy ? 'animate-pulse' : ''} />
-        <circle cx="93" cy="70" r="4" fill="#333" className={isHappy ? 'animate-pulse' : ''} />
-        
-        {/* Boca */}
-        {isHappy ? (
-          <path d="M 60 95 Q 75 105, 90 95" stroke="#333" strokeWidth="3" fill="none" strokeLinecap="round" />
-        ) : (
-          <line x1="60" y1="95" x2="90" y2="95" stroke="#333" strokeWidth="3" strokeLinecap="round" />
-        )}
-        
-        {/* Sonrojo si está feliz */}
-        {isHappy && (
-          <>
-            <circle cx="45" cy="85" r="8" fill="#ff9999" opacity="0.6" />
-            <circle cx="105" cy="85" r="8" fill="#ff9999" opacity="0.6" />
-          </>
-        )}
-      </svg>
+            let bowtieHTML = '';
+            if (state.equippedCosmetic === 'bowtie') {
+                bowtieHTML = `
+                    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                        <div class="flex gap-1 items-center">
+                            <div class="w-8 h-5 bg-red-600 rounded-l-full shadow-lg"></div>
+                            <div class="w-2 h-5 bg-red-800"></div>
+                            <div class="w-8 h-5 bg-red-600 rounded-r-full shadow-lg"></div>
+                        </div>
+                    </div>
+                `;
+            }
 
-      {/* Cosmético equipado */}
-      <div className="absolute top-0 left-1/2 transform -translate-x-1/2">
-        {equippedCosmetic === 'crown' && (
-          <Crown className="w-12 h-12 text-yellow-400 -translate-y-4" fill="currentColor" />
-        )}
-        {equippedCosmetic === 'hat' && (
-          <div className="w-20 h-10 bg-red-600 rounded-t-full -translate-y-4 shadow-lg" />
-        )}
-      </div>
-      
-      {equippedCosmetic === 'bowtie' && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-          <div className="flex gap-1 items-center">
-            <div className="w-8 h-5 bg-red-600 rounded-l-full shadow-lg" />
-            <div className="w-2 h-5 bg-red-800" />
-            <div className="w-8 h-5 bg-red-600 rounded-r-full shadow-lg" />
-          </div>
-        </div>
-      )}
-      
-      {equippedCosmetic === 'star' && (
-        <Star className="absolute -top-2 -right-6 w-10 h-10 text-yellow-400 animate-spin" 
-              fill="currentColor" 
-              style={{ animationDuration: '3s' }} />
-      )}
-    </div>
-  );
+            return `
+                <div class="relative flex items-center justify-center ${isHappy ? 'tooth-happy' : ''}">
+                    ${cosmeticHTML}
+                    <svg width="150" height="180" viewBox="0 0 150 180" class="drop-shadow-2xl">
+                        <defs>
+                            <linearGradient id="toothGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" />
+                                <stop offset="100%" stop-color="#f0f0f0" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <path d="M 75 20 Q 50 20, 40 40 L 40 120 Q 40 140, 50 150 L 65 170 Q 75 180, 85 170 L 100 150 Q 110 140, 110 120 L 110 40 Q 100 20, 75 20"
+                              fill="url(#toothGradient)" stroke="#e0e0e0" stroke-width="2" />
+                        
+                        <ellipse cx="60" cy="50" rx="15" ry="25" fill="white" opacity="0.4" />
+                        
+                        <g transform="translate(75, 70)">
+                            <ellipse cx="-18" cy="0" rx="15" ry="18" fill="none" stroke="#333" stroke-width="3" />
+                            <ellipse cx="18" cy="0" rx="15" ry="18" fill="none" stroke="#333" stroke-width="3" />
+                            <line x1="-3" y1="0" x2="3" y2="0" stroke="#333" stroke-width="3" />
+                            <ellipse cx="-18" cy="0" rx="15" ry="18" fill="#87CEEB" opacity="0.3" />
+                            <ellipse cx="18" cy="0" rx="15" ry="18" fill="#87CEEB" opacity="0.3" />
+                        </g>
+                        
+                        <circle cx="57" cy="70" r="4" fill="#333" />
+                        <circle cx="93" cy="70" r="4" fill="#333" />
+                        
+                        ${isHappy 
+                            ? '<path d="M 60 95 Q 75 105, 90 95" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round" />'
+                            : '<line x1="60" y1="95" x2="90" y2="95" stroke="#333" stroke-width="3" stroke-linecap="round" />'
+                        }
+                        
+                        ${isHappy ? '<circle cx="45" cy="85" r="8" fill="#ff9999" opacity="0.6" /><circle cx="105" cy="85" r="8" fill="#ff9999" opacity="0.6" />' : ''}
+                    </svg>
+                    ${bowtieHTML}
+                </div>
+            `;
+        }
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white p-6 max-w-md mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-2">
-          <Trophy className="w-6 h-6 text-yellow-400" />
-          <span className="text-2xl font-bold">{streak} días</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={toggleMusic}
-            className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition"
-          >
-            {musicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-          </button>
-          <div className="flex items-center gap-2">
-            <Star className="w-6 h-6 text-purple-400" />
-            <span className="text-2xl font-bold">{points} pts</span>
-          </div>
-        </div>
-      </div>
+        // Renderizar aplicación
+        function render() {
+            const completedMissions = state.missions.filter(m => m.completed).length;
+            const isHappy = completedMissions >= 2;
 
-      {/* Botón de alerta bracket perdido */}
-      <button
-        onClick={() => setShowResetModal(true)}
-        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl mb-6 flex items-center justify-center gap-2 transition shadow-lg"
-      >
-        <AlertCircle className="w-5 h-5" />
-        ¡Se me cayó un bracket!
-      </button>
+            document.getElementById('app').innerHTML = `
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-8">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🏆</span>
+                        <span class="text-2xl font-bold">${state.streak} días</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onclick="toggleMusic()" class="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition text-2xl">
+                            ${state.musicPlaying ? '🔊' : '🔇'}
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">⭐</span>
+                            <span class="text-2xl font-bold">${state.points} pts</span>
+                        </div>
+                    </div>
+                </div>
 
-      {/* Modal de confirmación */}
-      {showResetModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-2xl p-6 max-w-sm w-full">
-            <h3 className="text-xl font-bold mb-4 text-center">⚠️ ¿Estás seguro?</h3>
-            <p className="text-gray-300 text-center mb-6">
-              Esto reiniciará tu racha a 0 días. ¿Realmente se te cayó un bracket?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowResetModal(false)}
-                className="flex-1 bg-gray-700 hover:bg-gray-600 py-2 px-4 rounded-lg font-semibold transition"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleBracketLoss}
-                className="flex-1 bg-red-600 hover:bg-red-700 py-2 px-4 rounded-lg font-semibold transition"
-              >
-                Sí, reiniciar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mascota */}
-      <div className="bg-gray-800 rounded-3xl p-8 mb-6 flex flex-col items-center">
-        <ToothCharacter />
-        <p className="mt-4 text-lg text-center font-semibold">
-          {isHappy ? '¡Tu diente está feliz! 😊' : 'Completa tus misiones 🦷'}
-        </p>
-      </div>
-
-      {/* Misiones */}
-      <div className="bg-gray-800 rounded-2xl p-6 mb-6">
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Clock className="w-5 h-5" />
-          Misiones del día
-        </h2>
-        <div className="space-y-3">
-          {missions.map(mission => (
-            <div 
-              key={mission.id}
-              className={`flex items-center justify-between p-4 rounded-xl transition ${
-                mission.completed ? 'bg-green-900/30 border-2 border-green-500' : 'bg-gray-700'
-              }`}
-            >
-              <div>
-                <p className="font-semibold">{mission.label}</p>
-                <p className="text-sm text-gray-400">{mission.time}</p>
-              </div>
-              <button
-                onClick={() => completeMission(mission.id)}
-                disabled={mission.completed}
-                className={`px-4 py-2 rounded-lg font-semibold transition ${
-                  mission.completed 
-                    ? 'bg-green-600 cursor-not-allowed' 
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-              >
-                {mission.completed ? '✓ Hecho' : 'Completar'}
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tienda */}
-      <div className="bg-gray-800 rounded-2xl p-6">
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Gift className="w-5 h-5" />
-          Tienda de Cosméticos
-        </h2>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { name: 'crown', label: 'Corona', cost: 50, icon: Crown },
-            { name: 'hat', label: 'Sombrero', cost: 30, icon: Heart },
-            { name: 'bowtie', label: 'Corbatín', cost: 40, icon: Gift },
-            { name: 'star', label: 'Estrella', cost: 60, icon: Star }
-          ].map(item => (
-            <div key={item.name} className="bg-gray-700 rounded-xl p-4 flex flex-col items-center">
-              <item.icon className="w-8 h-8 mb-2 text-yellow-400" />
-              <p className="text-sm font-semibold mb-1">{item.label}</p>
-              <p className="text-xs text-gray-400 mb-2">{item.cost} pts</p>
-              {cosmetics[item.name] ? (
-                <button
-                  onClick={() => setEquippedCosmetic(equippedCosmetic === item.name ? null : item.name)}
-                  className={`w-full py-1 rounded-lg text-xs font-semibold transition ${
-                    equippedCosmetic === item.name
-                      ? 'bg-purple-600'
-                      : 'bg-green-900 text-green-300'
-                  }`}
-                >
-                  {equippedCosmetic === item.name ? 'Equipado' : 'Equipar'}
+                <!-- Botón alerta -->
+                <button onclick="resetStreak()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl mb-6 flex items-center justify-center gap-2 transition shadow-lg">
+                    <span class="text-xl">⚠️</span>
+                    ¡Se me cayó un bracket!
                 </button>
-              ) : (
-                <button
-                  onClick={() => buyCosmetic(item.name, item.cost)}
-                  disabled={points < item.cost}
-                  className={`w-full py-1 rounded-lg text-xs font-semibold transition ${
-                    points >= item.cost
-                      ? 'bg-blue-600 hover:bg-blue-700'
-                      : 'bg-gray-600 cursor-not-allowed'
-                  }`}
-                >
-                  Comprar
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+
+                <!-- Mascota -->
+                <div class="bg-gray-800 rounded-3xl p-8 mb-6 flex flex-col items-center">
+                    ${drawTooth()}
+                    <p class="mt-4 text-lg text-center font-semibold">
+                        ${isHappy ? '¡Tu diente está feliz! 😊' : 'Completa tus misiones 🦷'}
+                    </p>
+                </div>
+
+                <!-- Misiones -->
+                <div class="bg-gray-800 rounded-2xl p-6 mb-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-xl">⏰</span>
+                        Misiones del día
+                    </h2>
+                    <div class="space-y-3">
+                        ${state.missions.map(mission => `
+                            <div class="flex items-center justify-between p-4 rounded-xl transition ${mission.completed ? 'bg-green-900/30 border-2 border-green-500' : 'bg-gray-700'}">
+                                <div>
+                                    <p class="font-semibold">${mission.label}</p>
+                                    <p class="text-sm text-gray-400">${mission.time}</p>
+                                </div>
+                                <button onclick="completeMission(${mission.id})" 
+                                        ${mission.completed ? 'disabled' : ''}
+                                        class="px-4 py-2 rounded-lg font-semibold transition ${mission.completed ? 'bg-green-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}">
+                                    ${mission.completed ? '✓ Hecho' : 'Completar'}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Tienda -->
+                <div class="bg-gray-800 rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-xl">🎁</span>
+                        Tienda de Cosméticos
+                    </h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        ${[
+                            { name: 'crown', label: 'Corona', cost: 50, icon: '👑' },
+                            { name: 'hat', label: 'Sombrero', cost: 30, icon: '🎩' },
+                            { name: 'bowtie', label: 'Corbatín', cost: 40, icon: '🎀' },
+                            { name: 'star', label: 'Estrella', cost: 60, icon: '⭐' }
+                        ].map(item => `
+                            <div class="bg-gray-700 rounded-xl p-4 flex flex-col items-center">
+                                <span class="text-3xl mb-2">${item.icon}</span>
+                                <p class="text-sm font-semibold mb-1">${item.label}</p>
+                                <p class="text-xs text-gray-400 mb-2">${item.cost} pts</p>
+                                ${state.cosmetics[item.name] ? `
+                                    <button onclick="equipCosmetic('${item.name}')" 
+                                            class="w-full py-1 rounded-lg text-xs font-semibold transition ${state.equippedCosmetic === item.name ? 'bg-purple-600' : 'bg-green-900 text-green-300'}">
+                                        ${state.equippedCosmetic === item.name ? 'Equipado' : 'Equipar'}
+                                    </button>
+                                ` : `
+                                    <button onclick="buyCosmetic('${item.name}', ${item.cost})" 
+                                            ${state.points < item.cost ? 'disabled' : ''}
+                                            class="w-full py-1 rounded-lg text-xs font-semibold transition ${state.points >= item.cost ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 cursor-not-allowed'}">
+                                        Comprar
+                                    </button>
+                                `}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Inicializar
+        loadData();
+        render();
+    </script>
+</body>
+</html>
