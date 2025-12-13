@@ -3,57 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brackets Tracker Pro</title>
+    <title>Brackets Tracker</title>
+    
+    <!-- Iconos para iOS -->
     <link rel="apple-touch-icon" href="icon-180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+    
+    <!-- Meta tags para web app -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Brackets">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        .tooth-happy { animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .floating { animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-15px) rotate(5deg); } }
-        .tab-active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .cosmetic-card { transition: all 0.3s; cursor: pointer; }
-        .cosmetic-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3); }
-        .rarity-common { border-color: #9ca3af; }
-        .rarity-rare { border-color: #3b82f6; }
-        .rarity-epic { border-color: #a855f7; }
-        .rarity-legendary { border-color: #eab308; }
+        body {
+            background-color: #111827;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .tooth-happy {
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .spin-slow {
+            animation: spin 3s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
-<body class="min-h-screen p-4 pb-24">
+<body class="min-h-screen p-6">
     <div id="app" class="max-w-md mx-auto"></div>
-    <nav class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-lg border-t border-gray-800 shadow-2xl">
-        <div class="max-w-md mx-auto flex justify-around py-3">
-            <button onclick="changePage('home')" class="flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition" id="tab-home">
-                <span class="text-2xl">🏠</span><span class="text-xs">Inicio</span>
-            </button>
-            <button onclick="changePage('wardrobe')" class="flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition" id="tab-wardrobe">
-                <span class="text-2xl">👔</span><span class="text-xs">Vestidor</span>
-            </button>
-            <button onclick="changePage('shop')" class="flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition" id="tab-shop">
-                <span class="text-2xl">🛍️</span><span class="text-xs">Tienda</span>
-            </button>
-        </div>
-    </nav>
+
     <script>
-        const COSMETICS=[{id:1,name:'Gorra Baseball',category:'hat',rarity:'common',cost:30,emoji:'🧢'},{id:2,name:'Sombrero Vaquero',category:'hat',rarity:'rare',cost:50,emoji:'🤠'},{id:3,name:'Corona Real',category:'hat',rarity:'legendary',cost:100,emoji:'👑'},{id:4,name:'Sombrero Mago',category:'hat',rarity:'epic',cost:75,emoji:'🎩'},{id:5,name:'Gorro Chef',category:'hat',rarity:'common',cost:35,emoji:'👨‍🍳'},{id:6,name:'Casco Astronauta',category:'hat',rarity:'legendary',cost:120,emoji:'👨‍🚀'},{id:7,name:'Boina Francesa',category:'hat',rarity:'rare',cost:45,emoji:'🇫🇷'},{id:8,name:'Sombrero Pirata',category:'hat',rarity:'epic',cost:80,emoji:'🏴‍☠️'},{id:9,name:'Casco Vikingo',category:'hat',rarity:'epic',cost:85,emoji:'⚔️'},{id:10,name:'Gorro Santa',category:'hat',rarity:'rare',cost:55,emoji:'🎅'},{id:11,name:'Turbante',category:'hat',rarity:'rare',cost:50,emoji:'🧕'},{id:12,name:'Casco Samurai',category:'hat',rarity:'legendary',cost:110,emoji:'⛩️'},{id:13,name:'Sombrero Paja',category:'hat',rarity:'common',cost:25,emoji:'👒'},{id:14,name:'Corona Flores',category:'hat',rarity:'rare',cost:60,emoji:'🌸'},{id:15,name:'Halo Angelical',category:'hat',rarity:'legendary',cost:150,emoji:'😇'},{id:16,name:'Cuernos Demonio',category:'hat',rarity:'epic',cost:90,emoji:'😈'},{id:17,name:'Casco Caballero',category:'hat',rarity:'epic',cost:95,emoji:'🛡️'},{id:18,name:'Gorro Duende',category:'hat',rarity:'rare',cost:55,emoji:'🍀'},{id:19,name:'Diadema Real',category:'hat',rarity:'legendary',cost:130,emoji:'💎'},{id:20,name:'Casco Minero',category:'hat',rarity:'common',cost:40,emoji:'⛏️'},{id:21,name:'Lentes Sol',category:'glasses',rarity:'common',cost:30,emoji:'🕶️'},{id:22,name:'Lentes Nerd',category:'glasses',rarity:'common',cost:25,emoji:'🤓'},{id:23,name:'Lentes 3D',category:'glasses',rarity:'rare',cost:50,emoji:'🎬'},{id:24,name:'Monóculo',category:'glasses',rarity:'epic',cost:70,emoji:'🧐'},{id:25,name:'Lentes Aviador',category:'glasses',rarity:'rare',cost:55,emoji:'✈️'},{id:26,name:'Lentes Láser',category:'glasses',rarity:'legendary',cost:100,emoji:'🔴'},{id:27,name:'Lentes Redondos',category:'glasses',rarity:'common',cost:30,emoji:'⚡'},{id:28,name:'Lentes Buceo',category:'glasses',rarity:'rare',cost:45,emoji:'🤿'},{id:29,name:'Lentes Esquí',category:'glasses',rarity:'rare',cost:50,emoji:'⛷️'},{id:30,name:'Lentes RGB',category:'glasses',rarity:'epic',cost:80,emoji:'🎮'},{id:31,name:'Lentes Gato',category:'glasses',rarity:'rare',cost:45,emoji:'😺'},{id:32,name:'Lentes Corazón',category:'glasses',rarity:'rare',cost:55,emoji:'😍'},{id:33,name:'Lentes Futuristas',category:'glasses',rarity:'legendary',cost:120,emoji:'🤖'},{id:34,name:'Lentes Estrella',category:'glasses',rarity:'epic',cost:75,emoji:'⭐'},{id:35,name:'Anteojos Abuela',category:'glasses',rarity:'common',cost:20,emoji:'👵'},{id:36,name:'Lentes Holográficos',category:'glasses',rarity:'legendary',cost:110,emoji:'🌈'},{id:37,name:'Lentes Ciclista',category:'glasses',rarity:'common',cost:35,emoji:'🚴'},{id:38,name:'Lentes VR',category:'glasses',rarity:'epic',cost:85,emoji:'🥽'},{id:39,name:'Lentes Detective',category:'glasses',rarity:'rare',cost:50,emoji:'🔍'},{id:40,name:'Lentes Pixelados',category:'glasses',rarity:'epic',cost:70,emoji:'👾'},{id:41,name:'Corbatín',category:'accessory',rarity:'rare',cost:40,emoji:'🎀'},{id:42,name:'Collar Perlas',category:'accessory',rarity:'epic',cost:75,emoji:'📿'},{id:43,name:'Bufanda',category:'accessory',rarity:'common',cost:30,emoji:'🧣'},{id:44,name:'Corbata',category:'accessory',rarity:'common',cost:25,emoji:'👔'},{id:45,name:'Collar Oro',category:'accessory',rarity:'legendary',cost:100,emoji:'🏆'},{id:46,name:'Medalla Olímpica',category:'accessory',rarity:'legendary',cost:120,emoji:'🥇'},{id:47,name:'Pañuelo Seda',category:'accessory',rarity:'rare',cost:45,emoji:'🎨'},{id:48,name:'Alas Ángel',category:'accessory',rarity:'legendary',cost:150,emoji:'👼'},{id:49,name:'Capa Superhéroe',category:'accessory',rarity:'epic',cost:90,emoji:'🦸'},{id:50,name:'Cola Sirena',category:'accessory',rarity:'legendary',cost:130,emoji:'🧜'},{id:51,name:'Mochila',category:'accessory',rarity:'rare',cost:55,emoji:'🎒'},{id:52,name:'Alas Mariposa',category:'accessory',rarity:'epic',cost:85,emoji:'🦋'},{id:53,name:'Escudo Medieval',category:'accessory',rarity:'epic',cost:80,emoji:'🛡️'},{id:54,name:'Espada Láser',category:'accessory',rarity:'legendary',cost:140,emoji:'⚔️'},{id:55,name:'Guitarra',category:'accessory',rarity:'rare',cost:60,emoji:'🎸'},{id:56,name:'Micrófono',category:'accessory',rarity:'epic',cost:75,emoji:'🎤'},{id:57,name:'Balón Fútbol',category:'accessory',rarity:'common',cost:35,emoji:'⚽'},{id:58,name:'Raqueta Tenis',category:'accessory',rarity:'common',cost:30,emoji:'🎾'},{id:59,name:'Tabla Surf',category:'accessory',rarity:'rare',cost:65,emoji:'🏄'},{id:60,name:'Patineta',category:'accessory',rarity:'rare',cost:50,emoji:'🛹'},{id:61,name:'Varita Mágica',category:'accessory',rarity:'legendary',cost:110,emoji:'🪄'},{id:62,name:'Tridente',category:'accessory',rarity:'legendary',cost:125,emoji:'🔱'},{id:63,name:'Cetro Real',category:'accessory',rarity:'epic',cost:95,emoji:'👑'},{id:64,name:'Lazo Vaquero',category:'accessory',rarity:'rare',cost:45,emoji:'🤠'},{id:65,name:'Linterna',category:'accessory',rarity:'epic',cost:70,emoji:'🔦'},{id:66,name:'Telescopio',category:'accessory',rarity:'legendary',cost:135,emoji:'🔭'},{id:67,name:'Bola Cristal',category:'accessory',rarity:'epic',cost:80,emoji:'🔮'},{id:68,name:'Bandera Pirata',category:'accessory',rarity:'rare',cost:55,emoji:'🏴‍☠️'},{id:69,name:'Ancla',category:'accessory',rarity:'rare',cost:50,emoji:'⚓'},{id:70,name:'Brújula',category:'accessory',rarity:'legendary',cost:115,emoji:'🧭'},{id:71,name:'Aura Fuego',category:'effect',rarity:'legendary',cost:150,emoji:'🔥'},{id:72,name:'Lluvia Estrellas',category:'effect',rarity:'legendary',cost:140,emoji:'✨'},{id:73,name:'Brillos Mágicos',category:'effect',rarity:'epic',cost:90,emoji:'💫'},{id:74,name:'Corazones',category:'effect',rarity:'rare',cost:60,emoji:'💕'},{id:75,name:'Rayo Eléctrico',category:'effect',rarity:'legendary',cost:130,emoji:'⚡'},{id:76,name:'Nieve',category:'effect',rarity:'rare',cost:55,emoji:'❄️'},{id:77,name:'Hojas Otoño',category:'effect',rarity:'rare',cost:50,emoji:'🍂'},{id:78,name:'Pétalos Rosa',category:'effect',rarity:'epic',cost:75,emoji:'🌹'},{id:79,name:'Burbujas',category:'effect',rarity:'common',cost:40,emoji:'🫧'},{id:80,name:'Arcoíris',category:'effect',rarity:'legendary',cost:145,emoji:'🌈'},{id:81,name:'Luna',category:'effect',rarity:'epic',cost:85,emoji:'🌙'},{id:82,name:'Sol',category:'effect',rarity:'epic',cost:80,emoji:'☀️'},{id:83,name:'Cometa',category:'effect',rarity:'legendary',cost:135,emoji:'☄️'},{id:84,name:'Galaxia',category:'effect',rarity:'legendary',cost:160,emoji:'🌌'},{id:85,name:'Trueno',category:'effect',rarity:'epic',cost:95,emoji:'🌩️'},{id:86,name:'Tornado',category:'effect',rarity:'epic',cost:90,emoji:'🌪️'},{id:87,name:'Olas',category:'effect',rarity:'rare',cost:65,emoji:'🌊'},{id:88,name:'Volcán',category:'effect',rarity:'legendary',cost:155,emoji:'🌋'},{id:89,name:'Flores',category:'effect',rarity:'rare',cost:55,emoji:'🌻'},{id:90,name:'Confeti',category:'effect',rarity:'common',cost:45,emoji:'🎊'},{id:91,name:'Fuegos Art.',category:'effect',rarity:'legendary',cost:125,emoji:'🎆'},{id:92,name:'Mariposas',category:'effect',rarity:'rare',cost:60,emoji:'🦋'},{id:93,name:'Abejas',category:'effect',rarity:'common',cost:35,emoji:'🐝'},{id:94,name:'Luciérnagas',category:'effect',rarity:'epic',cost:85,emoji:'✨'},{id:95,name:'Neblina',category:'effect',rarity:'rare',cost:50,emoji:'🌫️'},{id:96,name:'Aurora Boreal',category:'effect',rarity:'legendary',cost:170,emoji:'🌠'},{id:97,name:'Partículas Oro',category:'effect',rarity:'epic',cost:100,emoji:'✨'},{id:98,name:'Energía Cósmica',category:'effect',rarity:'legendary',cost:150,emoji:'💠'},{id:99,name:'Ondas Sonoras',category:'effect',rarity:'rare',cost:55,emoji:'🎵'},{id:100,name:'Humo',category:'effect',rarity:'epic',cost:80,emoji:'💨'},{id:101,name:'Cristales',category:'effect',rarity:'legendary',cost:140,emoji:'💎'},{id:102,name:'Monedas',category:'effect',rarity:'epic',cost:90,emoji:'💰'},{id:103,name:'Trébol',category:'effect',rarity:'rare',cost:60,emoji:'🍀'},{id:104,name:'Plumas',category:'effect',rarity:'common',cost:40,emoji:'🪶'},{id:105,name:'Huellas',category:'effect',rarity:'rare',cost:65,emoji:'👣'}];
-        let state={streak:0,points:0,lastCheckin:null,missions:[{id:1,time:'12:00',completed:false,label:'Mediodía',targetHour:12},{id:2,time:'15:00',completed:false,label:'Tarde',targetHour:15},{id:3,time:'22:00',completed:false,label:'Noche',targetHour:22}],ownedCosmetics:[],equipped:{hat:null,glasses:null,accessory:null,effect:null},musicPlaying:false,currentPage:'home',shopRotationDate:null,dailyShopItems:[]};
-        const audio=new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3');audio.loop=true;audio.volume=0.3;
-        function loadData(){const s=localStorage.getItem('bracketsV2');if(s){state={...state,...JSON.parse(s)};checkShopRotation();}else rotateShop();}
-        function saveData(){localStorage.setItem('bracketsV2',JSON.stringify(state));}
-        function checkShopRotation(){const t=new Date().toDateString();if(state.shopRotationDate!==t)rotateShop();}
-        function rotateShop(){const t=new Date().toDateString();state.shopRotationDate=t;const s=[...COSMETICS].sort(()=>Math.random()-0.5);state.dailyShopItems=s.slice(0,12).map(i=>i.id);saveData();}
-        function changePage(p){state.currentPage=p;document.querySelectorAll('[id^="tab-"]').forEach(b=>b.classList.remove('tab-active'));document.getElementById(`tab-${p}`).classList.add('tab-active');render();}
-        function toggleMusic(){state.musicPlaying?audio.pause():audio.play().catch(e=>{});state.musicPlaying=!state.musicPlaying;render();}
-        function getTimeRemaining(h){const n=new Date(),t=new Date();t.setHours(h,0,0,0);if(n>t)t.setDate(t.getDate()+1);const d=t-n,hr=Math.floor(d/3600000),m=Math.floor((d%3600000)/60000);return`${hr}h ${m}m`;}
-        function completeMission(id){const m=state.missions.find(x=>x.id===id);if(!m.completed){m.completed=true;state.points+=10;const t=new Date().toDateString();if(state.lastCheckin!==t){state.streak++;state.lastCheckin=t;}saveData();render();}}
-        function resetStreak(){if(confirm('¿Reiniciar racha a 0?')){state.streak=0;saveData();render();}}
-        function buyCosmetic(id){const c=COSMETICS.find(x=>x.id===id);if(c&&state.points>=c.cost&&!state.ownedCosmetics.includes(id)){state.points-=c.cost;state.ownedCosmetics.push(id);saveData();render();}}
-        function equipCosmetic(id){const c=COSMETICS.find(x=>x.id===id);if(!c||!state.ownedCosmetics.includes(id))return;state.equipped[c.category]=state.equipped[c.category]===id?null:id;saveData();render();}
-        function drawTooth(){const cm=state.missions.filter(m=>m.completed).length,happy=cm>=2,eq={hat:state.equipped.hat?COSMETICS.find(c=>c.id===state.equipped.hat):null,glasses:state.equipped.glasses?COSMETICS.find(c=>c.id===state.equipped.glasses):null,accessory:state.equipped.accessory?COSMETICS.find(c=>c.id===state.equipped.accessory):null,effect:state.equipped.effect?COSMETICS.find(c=>c.id===state.equipped.effect):null};return`<div class="relative flex items-center justify-center ${happy?'tooth-happy':''}"><svg width="180" height="220" viewBox="0 0 180 220" class="drop-shadow-2xl relative z-20"><defs><linearGradient id="tg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fff"/><stop offset="50%" stop-color="#fefefe"/><stop offset="100%" stop-color="#f5f5f5"/></linearGradient><radialGradient id="sh"><stop offset="0%" stop-color="white" stop-opacity="0.8"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient></defs><ellipse cx="90" cy="200" rx="70" ry="15" fill="black" opacity="0.2"/><path d="M 90 30 Q 60 30, 50 55 L 50 140 Q 50 165, 65 180 L 80 200 Q 90 210, 100 200 L 115 180 Q 130 165, 130 140 L 130 55 Q 120 30, 90 30" fill="url(#tg)" stroke="#e5e5e5" stroke-width="2"/><ellipse cx="70" cy="60" rx="20" ry="35" fill="url(#sh)" opacity="0.5"/>${eq.glasses?`<g transform="translate(90,85)"><ellipse cx="-22" cy="0" rx="18" ry="22" fill="none" stroke="#222" stroke-width="4"/><ellipse cx="22" cy="0" rx="18" ry="22" fill="none" stroke="#222" stroke-width="4"/><line x1="-4" y1="0" x2="4" y2="0" stroke="#222" stroke-width="4"/><ellipse cx="-22" cy="0" rx="18" ry="22" fill="#87CEEB" opacity="0.3"/><ellipse cx="22" cy="0" rx="18" ry="22" fill="#87CEEB" opacity="0.3"/></g>`:'<g transform="translate(90,85)"><ellipse cx="-22" cy="0" rx="18" ry="22" fill="none" stroke="#666" stroke-width="3"/><ellipse cx="22" cy="0" rx="18" ry="22" fill="none" stroke="#666" stroke-width="3"/><line x1="-4" y1="0" x2="4" y2="0" stroke="#666" stroke-width="3"/></g>'}<circle cx="68" cy="85" r="5" fill="#333"/><circle cx="112" cy="85" r="5" fill="#333"/>${happy?'<path d="M 70 110 Q 90 125, 110 110" stroke="#333" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="55" cy="100" r="10" fill="#ffb3ba" opacity="0.6"/><circle cx="125" cy="100" r="10" fill="#ffb3ba" opacity="0.6"/>':'<line x1="70" y1="110" x2="110" y2="110" stroke="#333" stroke-width="4" stroke-linecap="round"/>'}</svg>${eq.hat?`<div class="absolute -top-16 left-1/2 transform -translate-x-1/2 text-6xl z-30">${eq.hat.emoji}</div>`:''}${eq.accessory?`<div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-5xl z-30">${eq.accessory.emoji}</div>`:''}${eq.effect?`<div class="absolute inset-0 flex items-center justify-center text-7xl opacity-40 floating z-10">${eq.effect.emoji}</div>`:''}</div>`;}
-        function renderHome(){const cm=state.missions.filter(m=>m.completed).length,happy=cm>=2;return`<div class="flex justify-between items-center mb-6"><div class="flex items-center gap-2"><span class="text-3xl">🏆</span><span class="text-2xl font-bold">${state.streak}</span><span class="text-sm text-gray-400">días</span></div><div class="flex items-center gap-3"><button onclick="toggleMusic()" class="p-2 bg-gray-800 rounded-full hover:bg-gray-700 text-2xl">${state.musicPlaying?'🔊':'🔇'}</button><div class="flex items-center gap-2"><span class="text-3xl">⭐</span><span class="text-2xl font-bold">${state.points}</span></div></div></div><button onclick="resetStreak()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-4 px-4 rounded-2xl mb-6 flex items-center justify-center gap-2 shadow-xl"><span class="text-2xl">⚠️</span><span class="text-lg">¡Se me cayó un bracket!</span></button><div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 mb-6 shadow-2xl"><div class="flex justify-center">${drawTooth()}</div><p class="mt-6 text-xl text-center font-bold">${happy?'¡Tu diente está súper feliz! 😊✨':'¡Completa tus misiones! 🦷'}</p></div><div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 shadow-xl"><h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><span class="text-2xl">⏰</span>Misiones del Día</h2><div class="space-y-3">${state.missions.map(m=>`<div class="flex items-center justify-between p-4 rounded-xl ${m.completed?'bg-green-900/40 border-2 border-green-500':'bg-gray-700/50'} backdrop-blur-sm"><div class="flex-1"><p class="font-bold text-lg">${m.label}</p><p class="text-sm text-gray-400">${m.time} · Quedan ${getTimeRemaining(m.targetHour)}</p></div><button onclick="completeMission(${m.id})" ${m.completed?'disabled':''} class="px-5 py-2 rounded-xl font-bold text-sm transition ${m.completed?'bg-green-600 cursor-not-allowed':'bg-blue-600 hover:bg-blue-700 active:scale-95'}">${m.completed?'✓ Completado':'Completar +10'}</button></div>`).join('')}</div></div>`;}
-        function renderWardrobe(){const cats={hat:'Sombreros',glasses:'Lentes',accessory:'Accesorios',effect:'Efectos'};let html='<h1 class="text-3xl font-bold mb-6 text-center">👔 Vestidor</h1>';Object.keys(cats).forEach(cat=>{const items=COSMETICS.filter(c=>c.category===cat&&state.ownedCosmetics.includes(c.id));if(items.length>0){html+=`<div class="mb-6"><h2 class="text-xl font-bold mb-3 text-purple-400">${cats[cat]} (${items.length})</h2><div class="grid grid-cols-3 gap-3">`;items.forEach(item=>{const isEq=state.equipped[cat]===item.id;html+=`<div onclick="equipCosmetic(${item.id})" class="cosmetic-card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 rarity-${item.rarity} ${isEq?'ring-4 ring-purple-500':''} shadow-lg"><div class="text-4xl mb-2">${item.emoji}</div><p class="text-xs font-bold mb-1">${item.name}</p><button class="w-full mt-2 py-1 rounded-lg text-xs font-bold ${isEq?'bg-purple-600':'bg-gray-700 hover:bg-gray-600'}">${isEq?'✓ Equipado':'Equipar'}</button></div>`;});html+='</div></div>';}});if(state.ownedCosmetics.length===0){html+='<div class="text-center py-12 text-gray-400"><p class="text-6xl mb-4">🛍️</p><p class="text-lg">¡Aún no tienes cosméticos!</p><p class="text-sm mt-2">Visita la tienda para comprar</p></div>';}return html;}
-        function renderShop(){const shopItems=state.dailyShopItems.map(id=>COSMETICS.find(c=>c.id===id)).filter(Boolean);const nextRotation=new Date();nextRotation.setDate(nextRotation.getDate()+1);nextRotation.setHours(0,0,0,0);const timeLeft=Math.floor((nextRotation-new Date())/3600000);return`<h1 class="text-3xl font-bold mb-4 text-center">🛍️ Tienda Diaria</h1><div class="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl p-3 mb-6 text-center backdrop-blur-sm border border-purple-500/30"><p class="text-sm font-bold text-purple-300">🔄 Rotación en ${timeLeft}h</p></div><div class="grid grid-cols-2 gap-3">${shopItems.map(item=>{const owned=state.ownedCosmetics.includes(item.id),canBuy=state.points>=item.cost;return`<div class="cosmetic-card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 rarity-${item.rarity} shadow-lg ${owned?'opacity-50':''}"><div class="text-5xl mb-2">${item.emoji}</div><p class="text-xs font-bold mb-1">${item.name}</p><div class="flex items-center justify-center gap-1 mb-2 text-yellow-400"><span class="text-lg">
+        // Estado de la aplicación
+        let state = {
+            streak: 0,
+            points: 0,
+            lastCheckin: null,
+            missions: [
+                { id: 1, time: '12:00', completed: false, label: 'Mediodía' },
+                { id: 2, time: '15:00', completed: false, label: 'Tarde' },
+                { id: 3, time: '22:00', completed: false, label: 'Noche' }
+            ],
+            cosmetics: {
+                hat: false,
+                bowtie: false,
+                crown: false,
+                star: false
+            },
+            equippedCosmetic: null,
+            musicPlaying: false
+        };
+
+        // Audio
+        const audio = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3');
+        audio.loop = true;
+        audio.volume = 0.3;
+
+        // Cargar datos guardados
+        function loadData() {
+            const saved = localStorage.getItem('bracketsData');
+            if (saved) {
+                state = { ...state, ...JSON.parse(saved) };
+            }
+        }
+
+        // Guardar datos
+        function saveData() {
+            localStorage.setItem('bracketsData', JSON.stringify(state));
+        }
+
+        // Toggle música
+        function toggleMusic() {
+            if (state.musicPlaying) {
+                audio.pause();
+            } else {
+                audio.play().catch(e => console.log('Audio error:', e));
+            }
+            state.musicPlaying = !state.musicPlaying;
+            render();
+        }
+
+        // Completar misión
+        function completeMission(missionId) {
+            const mission = state.missions.find(m => m.id === missionId);
+            if (!mission.completed) {
+                mission.completed = true;
+                state.points += 10;
+                
+                const today = new Date().toDateString();
+                if (state.lastCheckin !== today) {
+                    state.streak++;
+                    state.lastCheckin = today;
+                }
+                
+                saveData();
+                render();
+            }
+        }
+
+        // Reiniciar racha
+        function resetStreak() {
+            if (confirm('¿Estás seguro? Esto reiniciará tu racha a 0 días.')) {
+                state.streak = 0;
+                saveData();
+                render();
+            }
+        }
+
+        // Comprar cosmético
+        function buyCosmetic(name, cost) {
+            if (state.points >= cost && !state.cosmetics[name]) {
+                state.points -= cost;
+                state.cosmetics[name] = true;
+                saveData();
+                render();
+            }
+        }
+
+        // Equipar cosmético
+        function equipCosmetic(name) {
+            state.equippedCosmetic = state.equippedCosmetic === name ? null : name;
+            saveData();
+            render();
+        }
+
+        // Dibujar diente
+        function drawTooth() {
+            const completedMissions = state.missions.filter(m => m.completed).length;
+            const isHappy = completedMissions >= 2;
+            
+            let cosmeticHTML = '';
+            if (state.equippedCosmetic === 'crown') {
+                cosmeticHTML = `<div class="absolute -top-8 left-1/2 transform -translate-x-1/2 text-4xl">👑</div>`;
+            } else if (state.equippedCosmetic === 'hat') {
+                cosmeticHTML = `<div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-20 h-10 bg-red-600 rounded-t-full shadow-lg"></div>`;
+            } else if (state.equippedCosmetic === 'star') {
+                cosmeticHTML = `<div class="absolute -top-2 -right-6 text-4xl spin-slow">⭐</div>`;
+            }
+
+            let bowtieHTML = '';
+            if (state.equippedCosmetic === 'bowtie') {
+                bowtieHTML = `
+                    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                        <div class="flex gap-1 items-center">
+                            <div class="w-8 h-5 bg-red-600 rounded-l-full shadow-lg"></div>
+                            <div class="w-2 h-5 bg-red-800"></div>
+                            <div class="w-8 h-5 bg-red-600 rounded-r-full shadow-lg"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="relative flex items-center justify-center ${isHappy ? 'tooth-happy' : ''}">
+                    ${cosmeticHTML}
+                    <svg width="150" height="180" viewBox="0 0 150 180" class="drop-shadow-2xl">
+                        <defs>
+                            <linearGradient id="toothGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" />
+                                <stop offset="100%" stop-color="#f0f0f0" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <path d="M 75 20 Q 50 20, 40 40 L 40 120 Q 40 140, 50 150 L 65 170 Q 75 180, 85 170 L 100 150 Q 110 140, 110 120 L 110 40 Q 100 20, 75 20"
+                              fill="url(#toothGradient)" stroke="#e0e0e0" stroke-width="2" />
+                        
+                        <ellipse cx="60" cy="50" rx="15" ry="25" fill="white" opacity="0.4" />
+                        
+                        <g transform="translate(75, 70)">
+                            <ellipse cx="-18" cy="0" rx="15" ry="18" fill="none" stroke="#333" stroke-width="3" />
+                            <ellipse cx="18" cy="0" rx="15" ry="18" fill="none" stroke="#333" stroke-width="3" />
+                            <line x1="-3" y1="0" x2="3" y2="0" stroke="#333" stroke-width="3" />
+                            <ellipse cx="-18" cy="0" rx="15" ry="18" fill="#87CEEB" opacity="0.3" />
+                            <ellipse cx="18" cy="0" rx="15" ry="18" fill="#87CEEB" opacity="0.3" />
+                        </g>
+                        
+                        <circle cx="57" cy="70" r="4" fill="#333" />
+                        <circle cx="93" cy="70" r="4" fill="#333" />
+                        
+                        ${isHappy 
+                            ? '<path d="M 60 95 Q 75 105, 90 95" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round" />'
+                            : '<line x1="60" y1="95" x2="90" y2="95" stroke="#333" stroke-width="3" stroke-linecap="round" />'
+                        }
+                        
+                        ${isHappy ? '<circle cx="45" cy="85" r="8" fill="#ff9999" opacity="0.6" /><circle cx="105" cy="85" r="8" fill="#ff9999" opacity="0.6" />' : ''}
+                    </svg>
+                    ${bowtieHTML}
+                </div>
+            `;
+        }
+
+        // Renderizar aplicación
+        function render() {
+            const completedMissions = state.missions.filter(m => m.completed).length;
+            const isHappy = completedMissions >= 2;
+
+            document.getElementById('app').innerHTML = `
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-8">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🏆</span>
+                        <span class="text-2xl font-bold">${state.streak} días</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onclick="toggleMusic()" class="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition text-2xl">
+                            ${state.musicPlaying ? '🔊' : '🔇'}
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">⭐</span>
+                            <span class="text-2xl font-bold">${state.points} pts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón alerta -->
+                <button onclick="resetStreak()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl mb-6 flex items-center justify-center gap-2 transition shadow-lg">
+                    <span class="text-xl">⚠️</span>
+                    ¡Se me cayó un bracket!
+                </button>
+
+                <!-- Mascota -->
+                <div class="bg-gray-800 rounded-3xl p-8 mb-6 flex flex-col items-center">
+                    ${drawTooth()}
+                    <p class="mt-4 text-lg text-center font-semibold">
+                        ${isHappy ? '¡Tu diente está feliz! 😊' : 'Completa tus misiones 🦷'}
+                    </p>
+                </div>
+
+                <!-- Misiones -->
+                <div class="bg-gray-800 rounded-2xl p-6 mb-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-xl">⏰</span>
+                        Misiones del día
+                    </h2>
+                    <div class="space-y-3">
+                        ${state.missions.map(mission => `
+                            <div class="flex items-center justify-between p-4 rounded-xl transition ${mission.completed ? 'bg-green-900/30 border-2 border-green-500' : 'bg-gray-700'}">
+                                <div>
+                                    <p class="font-semibold">${mission.label}</p>
+                                    <p class="text-sm text-gray-400">${mission.time}</p>
+                                </div>
+                                <button onclick="completeMission(${mission.id})" 
+                                        ${mission.completed ? 'disabled' : ''}
+                                        class="px-4 py-2 rounded-lg font-semibold transition ${mission.completed ? 'bg-green-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}">
+                                    ${mission.completed ? '✓ Hecho' : 'Completar'}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Tienda -->
+                <div class="bg-gray-800 rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-xl">🎁</span>
+                        Tienda de Cosméticos
+                    </h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        ${[
+                            { name: 'crown', label: 'Corona', cost: 50, icon: '👑' },
+                            { name: 'hat', label: 'Sombrero', cost: 30, icon: '🎩' },
+                            { name: 'bowtie', label: 'Corbatín', cost: 40, icon: '🎀' },
+                            { name: 'star', label: 'Estrella', cost: 60, icon: '⭐' }
+                        ].map(item => `
+                            <div class="bg-gray-700 rounded-xl p-4 flex flex-col items-center">
+                                <span class="text-3xl mb-2">${item.icon}</span>
+                                <p class="text-sm font-semibold mb-1">${item.label}</p>
+                                <p class="text-xs text-gray-400 mb-2">${item.cost} pts</p>
+                                ${state.cosmetics[item.name] ? `
+                                    <button onclick="equipCosmetic('${item.name}')" 
+                                            class="w-full py-1 rounded-lg text-xs font-semibold transition ${state.equippedCosmetic === item.name ? 'bg-purple-600' : 'bg-green-900 text-green-300'}">
+                                        ${state.equippedCosmetic === item.name ? 'Equipado' : 'Equipar'}
+                                    </button>
+                                ` : `
+                                    <button onclick="buyCosmetic('${item.name}', ${item.cost})" 
+                                            ${state.points < item.cost ? 'disabled' : ''}
+                                            class="w-full py-1 rounded-lg text-xs font-semibold transition ${state.points >= item.cost ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 cursor-not-allowed'}">
+                                        Comprar
+                                    </button>
+                                `}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Inicializar
+        loadData();
+        render();
+    </script>
+</body>
+</html>
