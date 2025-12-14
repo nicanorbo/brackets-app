@@ -1,306 +1,73 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brackets Tracker</title>
-    
-    <!-- Iconos para iOS -->
     <link rel="apple-touch-icon" href="icon-180.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
-    
-    <!-- Meta tags para web app -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Brackets">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background-color: #111827;
-            color: white;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        .tooth-happy {
-            animation: bounce 2s infinite;
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        .spin-slow {
-            animation: spin 3s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        body{background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;font-family:-apple-system,sans-serif;min-height:100vh}
+        .tooth-happy{animation:bounce 2s infinite}
+        @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        .floating{animation:float 3s ease-in-out infinite}
+        @keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-15px) rotate(5deg)}}
+        .tab-active{background:linear-gradient(135deg,#667eea,#764ba2)}
+        .card{transition:all .3s;cursor:pointer}
+        .card:hover{transform:translateY(-5px)}
+        .r-common{border-color:#9ca3af}
+        .r-rare{border-color:#3b82f6}
+        .r-epic{border-color:#a855f7}
+        .r-legendary{border-color:#eab308;animation:glow 2s infinite}
+        @keyframes glow{0%,100%{box-shadow:0 0 20px rgba(234,179,8,.5)}50%{box-shadow:0 0 30px rgba(234,179,8,.8)}}
+        .owned{opacity:1}
+        .missing{opacity:.3;filter:grayscale(100%)}
     </style>
 </head>
-<body class="min-h-screen p-6">
-    <div id="app" class="max-w-md mx-auto"></div>
-
+<body>
+    <div id="app" class="max-w-md mx-auto p-4 pb-24"></div>
+    <nav class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-800 z-50">
+        <div class="max-w-md mx-auto flex justify-around py-2">
+            <button onclick="page('home')" class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg" id="t-home">
+                <span class="text-2xl">🏠</span><span class="text-xs">Inicio</span>
+            </button>
+            <button onclick="page('pokedex')" class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg" id="t-pokedex">
+                <span class="text-2xl">📖</span><span class="text-xs">Colección</span>
+            </button>
+            <button onclick="page('wardrobe')" class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg" id="t-wardrobe">
+                <span class="text-2xl">👔</span><span class="text-xs">Vestidor</span>
+            </button>
+            <button onclick="page('shop')" class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg" id="t-shop">
+                <span class="text-2xl">🛍️</span><span class="text-xs">Tienda</span>
+            </button>
+        </div>
+    </nav>
     <script>
-        // Estado de la aplicación
-        let state = {
-            streak: 0,
-            points: 0,
-            lastCheckin: null,
-            missions: [
-                { id: 1, time: '12:00', completed: false, label: 'Mediodía' },
-                { id: 2, time: '15:00', completed: false, label: 'Tarde' },
-                { id: 3, time: '22:00', completed: false, label: 'Noche' }
-            ],
-            cosmetics: {
-                hat: false,
-                bowtie: false,
-                crown: false,
-                star: false
-            },
-            equippedCosmetic: null,
-            musicPlaying: false
-        };
-
-        // Audio
-        const audio = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3');
-        audio.loop = true;
-        audio.volume = 0.3;
-
-        // Cargar datos guardados
-        function loadData() {
-            const saved = localStorage.getItem('bracketsData');
-            if (saved) {
-                state = { ...state, ...JSON.parse(saved) };
-            }
-        }
-
-        // Guardar datos
-        function saveData() {
-            localStorage.setItem('bracketsData', JSON.stringify(state));
-        }
-
-        // Toggle música
-        function toggleMusic() {
-            if (state.musicPlaying) {
-                audio.pause();
-            } else {
-                audio.play().catch(e => console.log('Audio error:', e));
-            }
-            state.musicPlaying = !state.musicPlaying;
-            render();
-        }
-
-        // Completar misión
-        function completeMission(missionId) {
-            const mission = state.missions.find(m => m.id === missionId);
-            if (!mission.completed) {
-                mission.completed = true;
-                state.points += 10;
-                
-                const today = new Date().toDateString();
-                if (state.lastCheckin !== today) {
-                    state.streak++;
-                    state.lastCheckin = today;
-                }
-                
-                saveData();
-                render();
-            }
-        }
-
-        // Reiniciar racha
-        function resetStreak() {
-            if (confirm('¿Estás seguro? Esto reiniciará tu racha a 0 días.')) {
-                state.streak = 0;
-                saveData();
-                render();
-            }
-        }
-
-        // Comprar cosmético
-        function buyCosmetic(name, cost) {
-            if (state.points >= cost && !state.cosmetics[name]) {
-                state.points -= cost;
-                state.cosmetics[name] = true;
-                saveData();
-                render();
-            }
-        }
-
-        // Equipar cosmético
-        function equipCosmetic(name) {
-            state.equippedCosmetic = state.equippedCosmetic === name ? null : name;
-            saveData();
-            render();
-        }
-
-        // Dibujar diente
-        function drawTooth() {
-            const completedMissions = state.missions.filter(m => m.completed).length;
-            const isHappy = completedMissions >= 2;
-            
-            let cosmeticHTML = '';
-            if (state.equippedCosmetic === 'crown') {
-                cosmeticHTML = `<div class="absolute -top-8 left-1/2 transform -translate-x-1/2 text-4xl">👑</div>`;
-            } else if (state.equippedCosmetic === 'hat') {
-                cosmeticHTML = `<div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-20 h-10 bg-red-600 rounded-t-full shadow-lg"></div>`;
-            } else if (state.equippedCosmetic === 'star') {
-                cosmeticHTML = `<div class="absolute -top-2 -right-6 text-4xl spin-slow">⭐</div>`;
-            }
-
-            let bowtieHTML = '';
-            if (state.equippedCosmetic === 'bowtie') {
-                bowtieHTML = `
-                    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                        <div class="flex gap-1 items-center">
-                            <div class="w-8 h-5 bg-red-600 rounded-l-full shadow-lg"></div>
-                            <div class="w-2 h-5 bg-red-800"></div>
-                            <div class="w-8 h-5 bg-red-600 rounded-r-full shadow-lg"></div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="relative flex items-center justify-center ${isHappy ? 'tooth-happy' : ''}">
-                    ${cosmeticHTML}
-                    <svg width="150" height="180" viewBox="0 0 150 180" class="drop-shadow-2xl">
-                        <defs>
-                            <linearGradient id="toothGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#ffffff" />
-                                <stop offset="100%" stop-color="#f0f0f0" />
-                            </linearGradient>
-                        </defs>
-                        
-                        <path d="M 75 20 Q 50 20, 40 40 L 40 120 Q 40 140, 50 150 L 65 170 Q 75 180, 85 170 L 100 150 Q 110 140, 110 120 L 110 40 Q 100 20, 75 20"
-                              fill="url(#toothGradient)" stroke="#e0e0e0" stroke-width="2" />
-                        
-                        <ellipse cx="60" cy="50" rx="15" ry="25" fill="white" opacity="0.4" />
-                        
-                        <g transform="translate(75, 70)">
-                            <ellipse cx="-18" cy="0" rx="15" ry="18" fill="none" stroke="#333" stroke-width="3" />
-                            <ellipse cx="18" cy="0" rx="15" ry="18" fill="none" stroke="#333" stroke-width="3" />
-                            <line x1="-3" y1="0" x2="3" y2="0" stroke="#333" stroke-width="3" />
-                            <ellipse cx="-18" cy="0" rx="15" ry="18" fill="#87CEEB" opacity="0.3" />
-                            <ellipse cx="18" cy="0" rx="15" ry="18" fill="#87CEEB" opacity="0.3" />
-                        </g>
-                        
-                        <circle cx="57" cy="70" r="4" fill="#333" />
-                        <circle cx="93" cy="70" r="4" fill="#333" />
-                        
-                        ${isHappy 
-                            ? '<path d="M 60 95 Q 75 105, 90 95" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round" />'
-                            : '<line x1="60" y1="95" x2="90" y2="95" stroke="#333" stroke-width="3" stroke-linecap="round" />'
-                        }
-                        
-                        ${isHappy ? '<circle cx="45" cy="85" r="8" fill="#ff9999" opacity="0.6" /><circle cx="105" cy="85" r="8" fill="#ff9999" opacity="0.6" />' : ''}
-                    </svg>
-                    ${bowtieHTML}
-                </div>
-            `;
-        }
-
-        // Renderizar aplicación
-        function render() {
-            const completedMissions = state.missions.filter(m => m.completed).length;
-            const isHappy = completedMissions >= 2;
-
-            document.getElementById('app').innerHTML = `
-                <!-- Header -->
-                <div class="flex justify-between items-center mb-8">
-                    <div class="flex items-center gap-2">
-                        <span class="text-2xl">🏆</span>
-                        <span class="text-2xl font-bold">${state.streak} días</span>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <button onclick="toggleMusic()" class="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition text-2xl">
-                            ${state.musicPlaying ? '🔊' : '🔇'}
-                        </button>
-                        <div class="flex items-center gap-2">
-                            <span class="text-2xl">⭐</span>
-                            <span class="text-2xl font-bold">${state.points} pts</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botón alerta -->
-                <button onclick="resetStreak()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl mb-6 flex items-center justify-center gap-2 transition shadow-lg">
-                    <span class="text-xl">⚠️</span>
-                    ¡Se me cayó un bracket!
-                </button>
-
-                <!-- Mascota -->
-                <div class="bg-gray-800 rounded-3xl p-8 mb-6 flex flex-col items-center">
-                    ${drawTooth()}
-                    <p class="mt-4 text-lg text-center font-semibold">
-                        ${isHappy ? '¡Tu diente está feliz! 😊' : 'Completa tus misiones 🦷'}
-                    </p>
-                </div>
-
-                <!-- Misiones -->
-                <div class="bg-gray-800 rounded-2xl p-6 mb-6">
-                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span class="text-xl">⏰</span>
-                        Misiones del día
-                    </h2>
-                    <div class="space-y-3">
-                        ${state.missions.map(mission => `
-                            <div class="flex items-center justify-between p-4 rounded-xl transition ${mission.completed ? 'bg-green-900/30 border-2 border-green-500' : 'bg-gray-700'}">
-                                <div>
-                                    <p class="font-semibold">${mission.label}</p>
-                                    <p class="text-sm text-gray-400">${mission.time}</p>
-                                </div>
-                                <button onclick="completeMission(${mission.id})" 
-                                        ${mission.completed ? 'disabled' : ''}
-                                        class="px-4 py-2 rounded-lg font-semibold transition ${mission.completed ? 'bg-green-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}">
-                                    ${mission.completed ? '✓ Hecho' : 'Completar'}
-                                </button>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- Tienda -->
-                <div class="bg-gray-800 rounded-2xl p-6">
-                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span class="text-xl">🎁</span>
-                        Tienda de Cosméticos
-                    </h2>
-                    <div class="grid grid-cols-2 gap-3">
-                        ${[
-                            { name: 'crown', label: 'Corona', cost: 50, icon: '👑' },
-                            { name: 'hat', label: 'Sombrero', cost: 30, icon: '🎩' },
-                            { name: 'bowtie', label: 'Corbatín', cost: 40, icon: '🎀' },
-                            { name: 'star', label: 'Estrella', cost: 60, icon: '⭐' }
-                        ].map(item => `
-                            <div class="bg-gray-700 rounded-xl p-4 flex flex-col items-center">
-                                <span class="text-3xl mb-2">${item.icon}</span>
-                                <p class="text-sm font-semibold mb-1">${item.label}</p>
-                                <p class="text-xs text-gray-400 mb-2">${item.cost} pts</p>
-                                ${state.cosmetics[item.name] ? `
-                                    <button onclick="equipCosmetic('${item.name}')" 
-                                            class="w-full py-1 rounded-lg text-xs font-semibold transition ${state.equippedCosmetic === item.name ? 'bg-purple-600' : 'bg-green-900 text-green-300'}">
-                                        ${state.equippedCosmetic === item.name ? 'Equipado' : 'Equipar'}
-                                    </button>
-                                ` : `
-                                    <button onclick="buyCosmetic('${item.name}', ${item.cost})" 
-                                            ${state.points < item.cost ? 'disabled' : ''}
-                                            class="w-full py-1 rounded-lg text-xs font-semibold transition ${state.points >= item.cost ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 cursor-not-allowed'}">
-                                        Comprar
-                                    </button>
-                                `}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        // Inicializar
-        loadData();
-        render();
+const DB=[{i:1,n:'Gorra',c:'hat',r:'common',p:30,e:'🧢'},{i:2,n:'Vaquero',c:'hat',r:'rare',p:50,e:'🤠'},{i:3,n:'Corona',c:'hat',r:'legendary',p:100,e:'👑'},{i:4,n:'Mago',c:'hat',r:'epic',p:75,e:'🎩'},{i:5,n:'Chef',c:'hat',r:'common',p:35,e:'👨‍🍳'},{i:6,n:'Astronauta',c:'hat',r:'legendary',p:120,e:'👨‍🚀'},{i:7,n:'Boina',c:'hat',r:'rare',p:45,e:'🇫🇷'},{i:8,n:'Pirata',c:'hat',r:'epic',p:80,e:'🏴‍☠️'},{i:9,n:'Vikingo',c:'hat',r:'epic',p:85,e:'⚔️'},{i:10,n:'Santa',c:'hat',r:'rare',p:55,e:'🎅'},{i:11,n:'Turbante',c:'hat',r:'rare',p:50,e:'🧕'},{i:12,n:'Samurai',c:'hat',r:'legendary',p:110,e:'⛩️'},{i:13,n:'Paja',c:'hat',r:'common',p:25,e:'👒'},{i:14,n:'Flores',c:'hat',r:'rare',p:60,e:'🌸'},{i:15,n:'Halo',c:'hat',r:'legendary',p:150,e:'😇'},{i:16,n:'Cuernos',c:'hat',r:'epic',p:90,e:'😈'},{i:17,n:'Caballero',c:'hat',r:'epic',p:95,e:'🛡️'},{i:18,n:'Duende',c:'hat',r:'rare',p:55,e:'🍀'},{i:19,n:'Diadema',c:'hat',r:'legendary',p:130,e:'💎'},{i:20,n:'Minero',c:'hat',r:'common',p:40,e:'⛏️'},{i:21,n:'Sol',c:'glasses',r:'common',p:30,e:'🕶️'},{i:22,n:'Nerd',c:'glasses',r:'common',p:25,e:'🤓'},{i:23,n:'3D',c:'glasses',r:'rare',p:50,e:'🎬'},{i:24,n:'Monóculo',c:'glasses',r:'epic',p:70,e:'🧐'},{i:25,n:'Aviador',c:'glasses',r:'rare',p:55,e:'✈️'},{i:26,n:'Láser',c:'glasses',r:'legendary',p:100,e:'🔴'},{i:27,n:'Redondos',c:'glasses',r:'common',p:30,e:'⚡'},{i:28,n:'Buceo',c:'glasses',r:'rare',p:45,e:'🤿'},{i:29,n:'Esquí',c:'glasses',r:'rare',p:50,e:'⛷️'},{i:30,n:'RGB',c:'glasses',r:'epic',p:80,e:'🎮'},{i:31,n:'Gato',c:'glasses',r:'rare',p:45,e:'😺'},{i:32,n:'Corazón',c:'glasses',r:'rare',p:55,e:'😍'},{i:33,n:'Futuristas',c:'glasses',r:'legendary',p:120,e:'🤖'},{i:34,n:'Estrella',c:'glasses',r:'epic',p:75,e:'⭐'},{i:35,n:'Abuela',c:'glasses',r:'common',p:20,e:'👵'},{i:36,n:'Holográficos',c:'glasses',r:'legendary',p:110,e:'🌈'},{i:37,n:'Ciclista',c:'glasses',r:'common',p:35,e:'🚴'},{i:38,n:'VR',c:'glasses',r:'epic',p:85,e:'🥽'},{i:39,n:'Detective',c:'glasses',r:'rare',p:50,e:'🔍'},{i:40,n:'Pixel',c:'glasses',r:'epic',p:70,e:'👾'},{i:41,n:'Corbatín',c:'accessory',r:'rare',p:40,e:'🎀'},{i:42,n:'Perlas',c:'accessory',r:'epic',p:75,e:'📿'},{i:43,n:'Bufanda',c:'accessory',r:'common',p:30,e:'🧣'},{i:44,n:'Corbata',c:'accessory',r:'common',p:25,e:'👔'},{i:45,n:'Oro',c:'accessory',r:'legendary',p:100,e:'🏆'},{i:46,n:'Medalla',c:'accessory',r:'legendary',p:120,e:'🥇'},{i:47,n:'Pañuelo',c:'accessory',r:'rare',p:45,e:'🎨'},{i:48,n:'Alas',c:'accessory',r:'legendary',p:150,e:'👼'},{i:49,n:'Capa',c:'accessory',r:'epic',p:90,e:'🦸'},{i:50,n:'Sirena',c:'accessory',r:'legendary',p:130,e:'🧜'},{i:51,n:'Fuego',c:'effect',r:'legendary',p:150,e:'🔥'},{i:52,n:'Estrellas',c:'effect',r:'legendary',p:140,e:'✨'},{i:53,n:'Brillos',c:'effect',r:'epic',p:90,e:'💫'},{i:54,n:'Corazones',c:'effect',r:'rare',p:60,e:'💕'},{i:55,n:'Rayo',c:'effect',r:'legendary',p:130,e:'⚡'}];
+let S={streak:0,pts:0,last:null,missions:[{id:1,time:'12:00',done:false,label:'Mediodía',h:12},{id:2,time:'15:00',done:false,label:'Tarde',h:15},{id:3,time:'22:00',done:false,label:'Noche',h:22}],own:[],eq:{hat:null,glasses:null,accessory:null,effect:null},music:false,pg:'home',shopD:null,shop:[],filt:'all'};
+const A=new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3');A.loop=1;A.volume=.3;
+function load(){const d=localStorage.getItem('bv3');if(d){S={...S,...JSON.parse(d)};chkShop();}else rotShop();}
+function save(){localStorage.setItem('bv3',JSON.stringify(S));}
+function chkShop(){const t=new Date().toDateString();if(S.shopD!==t)rotShop();}
+function rotShop(){S.shopD=new Date().toDateString();const sh=[...DB].sort(()=>Math.random()-.5);S.shop=sh.slice(0,12).map(x=>x.i);save();}
+function page(p){S.pg=p;document.querySelectorAll('[id^="t-"]').forEach(b=>b.classList.remove('tab-active'));document.getElementById('t-'+p).classList.add('tab-active');render();}
+function music(){S.music?A.pause():A.play().catch(()=>{});S.music=!S.music;render();}
+function getT(h){const n=new Date(),t=new Date();t.setHours(h,0,0,0);if(n>t)t.setDate(t.getDate()+1);const d=t-n;return Math.floor(d/3600000)+'h '+Math.floor(d%3600000/60000)+'m';}
+function doM(id){const m=S.missions.find(x=>x.id===id);if(!m.done){m.done=1;S.pts+=10;const t=new Date().toDateString();if(S.last!==t){S.streak++;S.last=t;}save();render();}}
+function reset(){if(confirm('¿Reiniciar racha?')){S.streak=0;save();render();}}
+function buy(id){const it=DB.find(x=>x.i===id);if(it&&S.pts>=it.p&&!S.own.includes(id)){S.pts-=it.p;S.own.push(id);save();render();}}
+function equip(id){const it=DB.find(x=>x.i===id);if(!it||!S.own.includes(id))return;S.eq[it.c]=S.eq[it.c]===id?null:id;save();render();}
+function filt(f){S.filt=f;render();}
+function tooth(){const h=S.missions.filter(m=>m.done).length>=2;const e={hat:S.eq.hat?DB.find(c=>c.i===S.eq.hat):null,glasses:S.eq.glasses?DB.find(c=>c.i===S.eq.glasses):null,accessory:S.eq.accessory?DB.find(c=>c.i===S.eq.accessory):null,effect:S.eq.effect?DB.find(c=>c.i===S.eq.effect):null};return`<div class="relative flex items-center justify-center ${h?'tooth-happy':''}"><svg width="180" height="220" viewBox="0 0 180 220" class="drop-shadow-2xl relative z-20"><defs><linearGradient id="tg"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#f5f5f5"/></linearGradient></defs><ellipse cx="90" cy="200" rx="70" ry="15" fill="#000" opacity=".2"/><path d="M90 30Q60 30 50 55L50 140Q50 165 65 180L80 200Q90 210 100 200L115 180Q130 165 130 140L130 55Q120 30 90 30" fill="url(#tg)" stroke="#e5e5e5" stroke-width="2"/><ellipse cx="70" cy="60" rx="20" ry="35" fill="#fff" opacity=".4"/>${e.glasses?'<g transform="translate(90,85)"><ellipse cx="-22" cy="0" rx="18" ry="22" fill="none" stroke="#222" stroke-width="4"/><ellipse cx="22" cy="0" rx="18" ry="22" fill="none" stroke="#222" stroke-width="4"/><line x1="-4" y1="0" x2="4" y2="0" stroke="#222" stroke-width="4"/><ellipse cx="-22" cy="0" rx="18" ry="22" fill="#87CEEB" opacity=".3"/><ellipse cx="22" cy="0" rx="18" ry="22" fill="#87CEEB" opacity=".3"/></g>':'<g transform="translate(90,85)"><ellipse cx="-22" cy="0" rx="18" ry="22" fill="none" stroke="#666" stroke-width="3"/><ellipse cx="22" cy="0" rx="18" ry="22" fill="none" stroke="#666" stroke-width="3"/><line x1="-4" y1="0" x2="4" y2="0" stroke="#666" stroke-width="3"/></g>'}<circle cx="68" cy="85" r="5" fill="#333"/><circle cx="112" cy="85" r="5" fill="#333"/>${h?'<path d="M70 110Q90 125 110 110" stroke="#333" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="55" cy="100" r="10" fill="#ffb3ba" opacity=".6"/><circle cx="125" cy="100" r="10" fill="#ffb3ba" opacity=".6"/>':'<line x1="70" y1="110" x2="110" y2="110" stroke="#333" stroke-width="4" stroke-linecap="round"/>'}</svg>${e.hat?`<div class="absolute -top-16 left-1/2 -translate-x-1/2 text-6xl z-30">${e.hat.e}</div>`:''}${e.accessory?`<div class="absolute bottom-0 left-1/2 -translate-x-1/2 text-5xl z-30">${e.accessory.e}</div>`:''}${e.effect?`<div class="absolute inset-0 flex items-center justify-center text-7xl opacity-40 floating z-10">${e.effect.e}</div>`:''}</div>`;}
+function home(){const h=S.missions.filter(m=>m.done).length>=2;return`<div class="flex justify-between items-center mb-6"><div class="flex items-center gap-2"><span class="text-3xl">🏆</span><span class="text-2xl font-bold">${S.streak}</span><span class="text-sm text-gray-400">días</span></div><div class="flex items-center gap-3"><button onclick="music()" class="p-2 bg-gray-800 rounded-full text-2xl">${S.music?'🔊':'🔇'}</button><div class="flex items-center gap-2"><span class="text-3xl">⭐</span><span class="text-2xl font-bold">${S.pts}</span></div></div></div><button onclick="reset()" class="w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-bold py-4 rounded-2xl mb-6 flex items-center justify-center gap-2 shadow-xl"><span class="text-2xl">⚠️</span><span>¡Bracket caído!</span></button><div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 mb-6 shadow-2xl">${tooth()}<p class="mt-6 text-xl text-center font-bold">${h?'¡Diente feliz! 😊✨':'¡Completa misiones! 🦷'}</p></div><div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 shadow-xl"><h2 class="text-2xl font-bold mb-4">⏰ Misiones</h2><div class="space-y-3">${S.missions.map(m=>`<div class="flex items-center justify-between p-4 rounded-xl ${m.done?'bg-green-900/40 border-2 border-green-500':'bg-gray-700/50'}"><div class="flex-1"><p class="font-bold text-lg">${m.label}</p><p class="text-sm text-gray-400">${m.time} · ${getT(m.h)}</p></div><button onclick="doM(${m.id})" ${m.done?'disabled':''} class="px-5 py-2 rounded-xl font-bold text-sm ${m.done?'bg-green-600 cursor-not-allowed':'bg-blue-600'}">${m.done?'✓':'Completar'}</button></div>`).join('')}</div></div>`;}
+function pdx(){const cats={all:'Todos',hat:'Sombreros',glasses:'Lentes',accessory:'Accesorios',effect:'Efectos'};const f=S.filt==='all'?DB:DB.filter(c=>c.c===S.filt);const o=f.filter(c=>S.own.includes(c.i)).length;return`<h1 class="text-3xl font-bold mb-4 text-center">📖 Colección</h1><div class="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl p-4 mb-4 text-center border border-purple-500/30"><p class="text-2xl font-bold text-purple-300">${o}/${f.length}</p><p class="text-sm">Coleccionados</p></div><div class="flex gap-2 mb-4 overflow-x-auto pb-2">${Object.keys(cats).map(k=>`<button onclick="filt('${k}')" class="px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap ${S.filt===k?'bg-purple-600':'bg-gray-800'}">${cats[k]}</button>`).join('')}</div><div class="grid grid-cols-3 gap-3">${f.map(it=>{const own=S.own.includes(it.i);return`<div class="card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 text-center border-2 r-${it.r} ${own?'owned':'missing'}"><div class="text-4xl mb-2">${own?it.e:'❓'}</div><p class="text-xs font-bold mb-1">${own?it.n:'???'}</p><div class="text-xs text-yellow-400">⭐ ${it.p}</div></div>`;}).join('')}</div>`;}
+function ward(){const cats={hat:'Sombreros',glasses:'Lentes',accessory:'Accesorios',effect:'Efectos'};let h='<h1 class="text-3xl font-bold mb-6 text-center">👔 Vestidor</h1>';Object.keys(cats).forEach(cat=>{const its=DB.filter(c=>c.c===cat&&S.own.includes(c.i));if(its.length>0){h+=`<div class="mb-6"><h2 class="text-xl font-bold mb-3 text-purple-400">${cats[cat]} (${its.length})</h2><div class="grid grid-cols-3 gap-3">`;its.forEach(it=>{const eq=S.eq[cat]===it.i;h+=`<div onclick="equip(${it.i})" class="card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 r-${it.r} ${eq?'ring-4 ring-purple-500':''}"><div class="text-4xl mb-2">${it.e}</div><p class="text-xs font-bold mb-1">${it.n}</p><button class="w-full mt-2 py-1 rounded-lg text-xs font-bold ${eq?'bg-purple-600':'bg-gray-700'}">${eq?'✓ Equipado':'Equipar'}</button></div>`;});h+='</div></div>';}});if(S.own.length===0)h+='<div class="text-center py-12 text-gray-400"><p class="text-6xl mb-4">🛍️</p><p class="text-lg">Sin cosméticos</p></div>';return h;}
+function shop(){const its=S.shop.map(id=>DB.find(c=>c.i===id)).filter(Boolean);const nx=new Date();nx.setDate(nx.getDate()+1);nx.setHours(0,0,0,0);const t=Math.floor((nx-new Date())/3600000);return`<h1 class="text-3xl font-bold mb-4 text-center">🛍️ Tienda Diaria</h1><div class="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl p-3 mb-6 text-center border border-purple-500/30"><p class="text-sm font-bold text-purple-300">🔄 Rotación en ${t}h</p></div><div class="grid grid-cols-2 gap-3">${its.map(it=>{const own=S.own.includes(it.i);const can=S.pts>=it.p;return`<div class="card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 r-${it.r} shadow-lg ${own?'opacity-50':''}"><div class="text-5xl mb-2">${it.e}</div><p class="text-xs font-bold mb-1">${it.n}</p><div class="flex items-center justify-center gap-1 mb-2 text-yellow-400"><span>⭐</span><span>${it.p}</span></div>${own?'<button disabled class="w-full py-2 bg-gray-600 rounded-lg text-xs font-bold cursor-not-allowed">Comprado</button>':`<button onclick="buy(${it.i})" ${!can?'disabled':''} class="w-full py-2 rounded-lg text-xs font-bold ${can?'bg-blue-600':'bg-gray-600 cursor-not-allowed'}">${can?'Comprar':'Sin puntos'}</button>`}</div>`;}).join('')}</div>`;}
+function render(){document.getElementById('app').innerHTML=S.pg==='home'?home():S.pg==='pokedex'?pdx():S.pg==='wardrobe'?ward():shop();}
+load();page('home');
     </script>
 </body>
 </html>
