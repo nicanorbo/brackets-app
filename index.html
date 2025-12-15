@@ -23,126 +23,495 @@
         .r-epic{border-color:#a855f7}
         .r-legendary{border-color:#eab308;animation:glow 2s infinite}
         @keyframes glow{0%,100%{box-shadow:0 0 20px rgba(234,179,8,.5)}50%{box-shadow:0 0 30px rgba(234,179,8,.8)}}
-        .owned{opacity:1}
-        .missing{opacity:.3;filter:grayscale(100%)}
+        .sparkle{animation:sparkle 2s infinite}
+        @keyframes sparkle{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
     </style>
 </head>
 <body>
     <div id="app" class="max-w-md mx-auto p-4 pb-24"></div>
     <nav class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-800 z-50">
-        <div class="max-w-md mx-auto flex justify-around py-2">
-            <button onclick="page('home')" class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg" id="t-home">
-                <span class="text-2xl">🏠</span><span class="text-xs">Inicio</span>
+        <div class="max-w-md mx-auto flex justify-around py-3">
+            <button onclick="changePage('home')" class="flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition" id="tab-home">
+                <span class="text-2xl">🏠</span><span class="text-xs font-semibold">Inicio</span>
             </button>
-            <button onclick="page('pokedex')" class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg" id="t-pokedex">
-                <span class="text-2xl">📖</span><span class="text-xs">Colección</span>
+            <button onclick="changePage('closet')" class="flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition" id="tab-closet">
+                <span class="text-2xl">👔</span><span class="text-xs font-semibold">Armario</span>
             </button>
-            <button onclick="page('wardrobe')" class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg" id="t-wardrobe">
-                <span class="text-2xl">👔</span><span class="text-xs">Vestidor</span>
-            </button>
-            <button onclick="page('shop')" class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg" id="t-shop">
-                <span class="text-2xl">🛍️</span><span class="text-xs">Tienda</span>
+            <button onclick="changePage('shop')" class="flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition" id="tab-shop">
+                <span class="text-2xl">🛍️</span><span class="text-xs font-semibold">Tienda</span>
             </button>
         </div>
     </nav>
     <script>
-const DB=[
-{i:1,n:'Gorra Roja',c:'hat',r:'common',p:30},
-{i:2,n:'Sombrero Cowboy',c:'hat',r:'rare',p:50},
-{i:3,n:'Corona de Oro',c:'hat',r:'legendary',p:100},
-{i:4,n:'Chistera Negra',c:'hat',r:'epic',p:75},
-{i:5,n:'Gorro de Chef',c:'hat',r:'common',p:35},
-{i:6,n:'Casco Espacial',c:'hat',r:'legendary',p:120},
-{i:7,n:'Boina Francesa',c:'hat',r:'rare',p:45},
-{i:8,n:'Tricornio Pirata',c:'hat',r:'epic',p:80},
-{i:9,n:'Casco con Cuernos',c:'hat',r:'epic',p:85},
-{i:10,n:'Gorro de Papá Noel',c:'hat',r:'rare',p:55},
-{i:11,n:'Turbante Dorado',c:'hat',r:'rare',p:50},
-{i:12,n:'Kabuto Samurai',c:'hat',r:'legendary',p:110},
-{i:13,n:'Sombrero de Paja',c:'hat',r:'common',p:25},
-{i:14,n:'Corona de Flores',c:'hat',r:'rare',p:60},
-{i:15,n:'Aureola Brillante',c:'hat',r:'legendary',p:150},
-{i:16,n:'Cuernos Demoníacos',c:'hat',r:'epic',p:90},
-{i:17,n:'Yelmo Medieval',c:'hat',r:'epic',p:95},
-{i:18,n:'Sombrero de Duende',c:'hat',r:'rare',p:55},
-{i:19,n:'Tiara de Diamantes',c:'hat',r:'legendary',p:130},
-{i:20,n:'Casco con Linterna',c:'hat',r:'common',p:40},
-{i:21,n:'Gafas de Sol Negras',c:'glasses',r:'common',p:30},
-{i:22,n:'Gafas de Pasta',c:'glasses',r:'common',p:25},
-{i:23,n:'Gafas 3D Rojas',c:'glasses',r:'rare',p:50},
-{i:24,n:'Monóculo Dorado',c:'glasses',r:'epic',p:70},
-{i:25,n:'Gafas Aviador',c:'glasses',r:'rare',p:55},
-{i:26,n:'Visor Láser Rojo',c:'glasses',r:'legendary',p:100},
-{i:27,n:'Gafas Redondas',c:'glasses',r:'common',p:30},
-{i:28,n:'Máscara de Buceo',c:'glasses',r:'rare',p:45},
-{i:29,n:'Gafas de Esquí',c:'glasses',r:'rare',p:50},
-{i:30,n:'Visor RGB Gaming',c:'glasses',r:'epic',p:80},
-{i:31,n:'Gafas de Gato',c:'glasses',r:'rare',p:45},
-{i:32,n:'Gafas con Corazones',c:'glasses',r:'rare',p:55},
-{i:33,n:'Visor Cyberpunk',c:'glasses',r:'legendary',p:120},
-{i:34,n:'Gafas de Estrella',c:'glasses',r:'epic',p:75},
-{i:35,n:'Anteojos Vintage',c:'glasses',r:'common',p:20},
-{i:36,n:'Lentes Holográficos',c:'glasses',r:'legendary',p:110},
-{i:37,n:'Gafas Deportivas',c:'glasses',r:'common',p:35},
-{i:38,n:'Casco VR',c:'glasses',r:'epic',p:85},
-{i:39,n:'Lupa de Detective',c:'glasses',r:'rare',p:50},
-{i:40,n:'Gafas Pixeladas',c:'glasses',r:'epic',p:70},
-{i:41,n:'Pajarita Roja',c:'accessory',r:'rare',p:40},
-{i:42,n:'Collar de Perlas',c:'accessory',r:'epic',p:75},
-{i:43,n:'Bufanda a Rayas',c:'accessory',r:'common',p:30},
-{i:44,n:'Corbata Azul',c:'accessory',r:'common',p:25},
-{i:45,n:'Cadena de Oro',c:'accessory',r:'legendary',p:100},
-{i:46,n:'Medalla Dorada',c:'accessory',r:'legendary',p:120},
-{i:47,n:'Pañuelo de Seda',c:'accessory',r:'rare',p:45},
-{i:48,n:'Alas de Ángel',c:'accessory',r:'legendary',p:150},
-{i:49,n:'Capa de Héroe',c:'accessory',r:'epic',p:90},
-{i:50,n:'Cola de Sirena',c:'accessory',r:'legendary',p:130},
-{i:51,n:'Aura de Fuego',c:'effect',r:'legendary',p:150},
-{i:52,n:'Lluvia de Estrellas',c:'effect',r:'legendary',p:140},
-{i:53,n:'Destellos Mágicos',c:'effect',r:'epic',p:90},
-{i:54,n:'Corazones Flotantes',c:'effect',r:'rare',p:60},
-{i:55,n:'Relámpagos Azules',c:'effect',r:'legendary',p:130},
-{i:56,n:'Copos de Nieve',c:'effect',r:'rare',p:55},
-{i:57,n:'Hojas Cayendo',c:'effect',r:'rare',p:50},
-{i:58,n:'Pétalos de Rosa',c:'effect',r:'epic',p:75},
-{i:59,n:'Burbujas Brillantes',c:'effect',r:'common',p:40},
-{i:60,n:'Arcoíris Brillante',c:'effect',r:'legendary',p:145},
-{i:61,n:'Resplandor Lunar',c:'effect',r:'epic',p:85},
-{i:62,n:'Rayos de Sol',c:'effect',r:'epic',p:80},
-{i:63,n:'Estela de Cometa',c:'effect',r:'legendary',p:135},
-{i:64,n:'Galaxia Giratoria',c:'effect',r:'legendary',p:160},
-{i:65,n:'Tormenta Eléctrica',c:'effect',r:'epic',p:95},
-{i:66,n:'Remolino de Viento',c:'effect',r:'epic',p:90},
-{i:67,n:'Olas del Mar',c:'effect',r:'rare',p:65},
-{i:68,n:'Lava Volcánica',c:'effect',r:'legendary',p:155},
-{i:69,n:'Jardín Floreciente',c:'effect',r:'rare',p:55},
-{i:70,n:'Confeti de Colores',c:'effect',r:'common',p:45},
-{i:71,n:'Fuegos Artificiales',c:'effect',r:'legendary',p:125},
-{i:72,n:'Enjambre de Mariposas',c:'effect',r:'rare',p:60},
-{i:73,n:'Luciérnagas Doradas',c:'effect',r:'epic',p:85},
-{i:74,n:'Niebla Misteriosa',c:'effect',r:'rare',p:50},
-{i:75,n:'Aurora Boreal',c:'effect',r:'legendary',p:170}
+const DB=[{i:1,n:'Gorra Roja',c:'hat',r:'common',p:30},{i:2,n:'Sombrero Cowboy',c:'hat',r:'rare',p:50},{i:3,n:'Corona de Oro',c:'hat',r:'legendary',p:100},{i:4,n:'Chistera Negra',c:'hat',r:'epic',p:75},{i:5,n:'Gorro de Chef',c:'hat',r:'common',p:35},{i:13,n:'Sombrero de Paja',c:'hat',r:'common',p:25},{i:21,n:'Gafas de Sol',c:'glasses',r:'common',p:30},{i:22,n:'Gafas Nerd',c:'glasses',r:'common',p:25},{i:41,n:'Pajarita Roja',c:'accessory',r:'rare',p:40},{i:42,n:'Collar Perlas',c:'accessory',r:'epic',p:75},{i:43,n:'Bufanda Rayas',c:'accessory',r:'common',p:30},{i:48,n:'Alas Ángel',c:'accessory',r:'legendary',p:150},{i:49,n:'Capa Héroe',c:'accessory',r:'epic',p:90},{i:51,n:'Aura Fuego',c:'effect',r:'legendary',p:150},{i:52,n:'Lluvia Estrellas',c:'effect',r:'legendary',p:140},{i:53,n:'Destellos Mágicos',c:'effect',r:'epic',p:90}];
+
+const COLORS=[
+{i:101,n:‘Muela Rosa’,c:‘color’,color:’#ff69b4’,gradient:‘linear-gradient(135deg, #ff69b4 0%, #ff1493 100%)’},
+{i:102,n:‘Muela Dorada’,c:‘color’,color:’#ffd700’,gradient:‘linear-gradient(135deg, #ffd700 0%, #ff8c00 100%)’},
+{i:103,n:‘Muela Azul’,c:‘color’,color:’#4169e1’,gradient:‘linear-gradient(135deg, #4169e1 0%, #1e90ff 100%)’},
+{i:104,n:‘Muela Verde’,c:‘color’,color:’#32cd32’,gradient:‘linear-gradient(135deg, #32cd32 0%, #228b22 100%)’},
+{i:105,n:‘Muela Morada’,c:‘color’,color:’#9370db’,gradient:‘linear-gradient(135deg, #9370db 0%, #8a2be2 100%)’},
+{i:106,n:‘Muela Roja’,c:‘color’,color:’#dc143c’,gradient:‘linear-gradient(135deg, #dc143c 0%, #8b0000 100%)’},
+{i:107,n:‘Muela Negra’,c:‘color’,color:’#2f2f2f’,gradient:‘linear-gradient(135deg, #2f2f2f 0%, #000000 100%)’},
+{i:108,n:‘Muela Arcoíris’,c:‘color’,color:’#ff0080’,gradient:‘linear-gradient(135deg, #ff0080 0%, #ff8c00 25%, #40e0d0 50%, #9370db 75%, #ff69b4 100%)’},
+{i:109,n:‘Muela Galaxia’,c:‘color’,color:’#1a1a2e’,gradient:‘linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)’},
+{i:110,n:‘Muela Fuego’,c:‘color’,color:’#ff4500’,gradient:‘linear-gradient(135deg, #ff4500 0%, #ff6347 50%, #ffa500 100%)’}
 ];
-let S={streak:0,pts:0,last:null,missions:[{id:1,time:'12:00',done:false,label:'Mediodía',h:12},{id:2,time:'15:00',done:false,label:'Tarde',h:15},{id:3,time:'22:00',done:false,label:'Noche',h:22}],own:[],eq:{hat:null,glasses:null,accessory:null,effect:null},music:false,pg:'home',filt:'all'};
-const A=new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3');A.loop=1;A.volume=.3;
-function load(){const d=localStorage.getItem('bv4');if(d){S={...S,...JSON.parse(d)};checkNewDay();}}
-function save(){localStorage.setItem('bv4',JSON.stringify(S));}
-function checkNewDay(){const today=new Date().toDateString();if(S.last&&S.last!==today){const lastDate=new Date(S.last);const todayDate=new Date(today);const diffDays=Math.floor((todayDate-lastDate)/(1000*60*60*24));if(diffDays>1){S.streak=0;}S.missions.forEach(m=>m.done=false);save();}}
-function page(p){S.pg=p;document.querySelectorAll('[id^="t-"]').forEach(b=>b.classList.remove('tab-active'));document.getElementById('t-'+p).classList.add('tab-active');render();}
-function music(){S.music?A.pause():A.play().catch(()=>{});S.music=!S.music;render();}
-function getT(h){const n=new Date(),t=new Date();t.setHours(h,0,0,0);if(n>t)t.setDate(t.getDate()+1);const d=t-n;return Math.floor(d/3600000)+'h '+Math.floor(d%3600000/60000)+'m';}
-function doM(id){const m=S.missions.find(x=>x.id===id);if(!m.done){m.done=1;S.pts+=10;const today=new Date().toDateString();const allDone=S.missions.every(x=>x.done);if(allDone&&S.last!==today){S.streak++;S.last=today;}save();render();}}
-function reset(){if(confirm('¿Reiniciar racha?')){S.streak=0;save();render();}}
-function buy(id){const it=DB.find(x=>x.i===id);if(it&&S.pts>=it.p&&!S.own.includes(id)){S.pts-=it.p;S.own.push(id);save();render();}}
-function equip(id){const it=DB.find(x=>x.i===id);if(!it||!S.own.includes(id))return;S.eq[it.c]=S.eq[it.c]===id?null:id;save();render();}
-function filt(f){S.filt=f;render();}
-function drawMolar(){const h=S.missions.filter(m=>m.done).length>=2;const e={hat:S.eq.hat?DB.find(c=>c.i===S.eq.hat):null,glasses:S.eq.glasses?DB.find(c=>c.i===S.eq.glasses):null,accessory:S.eq.accessory?DB.find(c=>c.i===S.eq.accessory):null,effect:S.eq.effect?DB.find(c=>c.i===S.eq.effect):null};return`<div class="relative flex items-center justify-center ${h?'molar-happy':''}"><svg width="200" height="240" viewBox="0 0 200 240" class="drop-shadow-2xl relative z-20"><defs><linearGradient id="tg"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#f5f5f5"/></linearGradient><radialGradient id="sh"><stop offset="0%" stop-color="#fff" stop-opacity=".6"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><ellipse cx="100" cy="220" rx="80" ry="15" fill="#000" opacity=".2"/><path d="M60 40 Q50 45 45 60 L45 130 Q45 150 55 165 L70 190 Q75 200 80 200 L80 200 Q85 210 90 210 L110 210 Q115 210 120 200 L120 200 Q125 200 130 190 L145 165 Q155 150 155 130 L155 60 Q150 45 140 40 Q130 35 120 35 L80 35 Q70 35 60 40" fill="url(#tg)" stroke="#e5e5e5" stroke-width="3"/><ellipse cx="70" cy="70" rx="25" ry="40" fill="url(#sh)"/><ellipse cx="130" cy="70" rx="25" ry="40" fill="url(#sh)"/><path d="M75 90 L85 110 L75 130 L65 110 Z" fill="#f0f0f0" stroke="#ddd" stroke-width="1"/><path d="M95 90 L105 110 L95 130 L85 110 Z" fill="#f0f0f0" stroke="#ddd" stroke-width="1"/><path d="M115 90 L125 110 L115 130 L105 110 Z" fill="#f0f0f0" stroke="#ddd" stroke-width="1"/><path d="M135 90 L145 110 L135 130 L125 110 Z" fill="#f0f0f0" stroke="#ddd" stroke-width="1"/>${e.glasses?'<g transform="translate(100,100)"><rect x="-35" y="-15" width="30" height="25" rx="8" fill="none" stroke="#222" stroke-width="4"/><rect x="5" y="-15" width="30" height="25" rx="8" fill="none" stroke="#222" stroke-width="4"/><line x1="-5" y1="-2" x2="5" y2="-2" stroke="#222" stroke-width="4"/><rect x="-35" y="-15" width="30" height="25" rx="8" fill="#87CEEB" opacity=".2"/><rect x="5" y="-15" width="30" height="25" rx="8" fill="#87CEEB" opacity=".2"/></g>':'<g transform="translate(100,100)"><rect x="-35" y="-15" width="30" height="25" rx="8" fill="none" stroke="#666" stroke-width="3"/><rect x="5" y="-15" width="30" height="25" rx="8" fill="none" stroke="#666" stroke-width="3"/><line x1="-5" y1="-2" x2="5" y2="-2" stroke="#666" stroke-width="3"/></g>'}<circle cx="75" cy="100" r="6" fill="#333"/><circle cx="125" cy="100" r="6" fill="#333"/>${h?'<path d="M75 135 Q100 150 125 135" stroke="#333" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="55" cy="115" r="12" fill="#ffb3ba" opacity=".6"/><circle cx="145" cy="115" r="12" fill="#ffb3ba" opacity=".6"/>':'<line x1="75" y1="135" x2="125" y2="135" stroke="#333" stroke-width="5" stroke-linecap="round"/>'}</svg>${e.hat?`<div class="absolute -top-20 left-1/2 -translate-x-1/2 z-30"><div class="w-24 h-16 bg-gradient-to-b ${e.hat.i===3?'from-yellow-400 to-yellow-600':'from-red-600 to-red-800'} rounded-t-full shadow-xl relative"><div class="absolute inset-0 bg-white/20 rounded-t-full"></div></div></div>`:''}${e.glasses?`<div class="absolute top-16 left-1/2 -translate-x-1/2 z-30"></div>`:''}${e.accessory?`<div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30"><div class="w-20 h-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg relative"><div class="absolute inset-0 bg-white/30 rounded-lg"></div></div></div>`:''}${e.effect?`<div class="absolute inset-0 flex items-center justify-center z-10"><div class="w-48 h-48 bg-gradient-radial ${e.effect.i===51?'from-orange-500/30 to-transparent':e.effect.i===52?'from-yellow-300/30 to-transparent':'from-purple-500/30 to-transparent'} rounded-full floating"></div></div>`:''}</div>`;}
-function home(){const h=S.missions.filter(m=>m.done).length>=2;return`<div class="flex justify-between items-center mb-6"><div class="flex items-center gap-2"><span class="text-3xl">🏆</span><span class="text-2xl font-bold">${S.streak}</span><span class="text-sm text-gray-400">días</span></div><div class="flex items-center gap-3"><button onclick="music()" class="p-2 bg-gray-800 rounded-full text-2xl">${S.music?'🔊':'🔇'}</button><div class="flex items-center gap-2"><span class="text-3xl">⭐</span><span class="text-2xl font-bold">${S.pts}</span></div></div></div><button onclick="reset()" class="w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-bold py-4 rounded-2xl mb-6 flex items-center justify-center gap-2 shadow-xl"><span class="text-2xl">⚠️</span><span>¡Bracket caído!</span></button><div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 mb-6 shadow-2xl">${drawMolar()}<p class="mt-6 text-xl text-center font-bold">${h?'¡Muela feliz! 😊✨':'¡Completa misiones! 🦷'}</p></div><div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 shadow-xl"><h2 class="text-2xl font-bold mb-4">⏰ Misiones del Día</h2><div class="space-y-3">${S.missions.map(m=>`<div class="flex items-center justify-between p-4 rounded-xl ${m.done?'bg-green-900/40 border-2 border-green-500':'bg-gray-700/50'}"><div class="flex-1"><p class="font-bold text-lg">${m.label}</p><p class="text-sm text-gray-400">${m.time} · Quedan ${getT(m.h)}</p></div><button onclick="doM(${m.id})" ${m.done?'disabled':''} class="px-5 py-2 rounded-xl font-bold text-sm ${m.done?'bg-green-600 cursor-not-allowed':'bg-blue-600 hover:bg-blue-700'}">${m.done?'✓ Hecho':'Completar'}</button></div>`).join('')}</div></div>`;}
-function pdx(){const cats={all:'Todos',hat:'Sombreros',glasses:'Lentes',accessory:'Accesorios',effect:'Efectos'};const f=S.filt==='all'?DB:DB.filter(c=>c.c===S.filt);const o=f.filter(c=>S.own.includes(c.i)).length;return`<h1 class="text-3xl font-bold mb-4 text-center">📖 Colección</h1><div class="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl p-4 mb-4 text-center border border-purple-500/30"><p class="text-2xl font-bold text-purple-300">${o}/${f.length}</p><p class="text-sm">Cosméticos coleccionados</p></div><div class="flex gap-2 mb-4 overflow-x-auto pb-2">${Object.keys(cats).map(k=>`<button onclick="filt('${k}')" class="px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap ${S.filt===k?'bg-purple-600':'bg-gray-800 hover:bg-gray-700'}">${cats[k]}</button>`).join('')}</div><div class="grid grid-cols-2 gap-3">${f.map(it=>{const own=S.own.includes(it.i);return`<div class="card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 r-${it.r} ${own?'owned':'missing'}"><div class="text-xs font-bold mb-2 ${it.r==='legendary'?'text-yellow-400':it.r==='epic'?'text-purple-400':it.r==='rare'?'text-blue-400':'text-gray-400'}">${it.r.toUpperCase()}</div><div class="w-16 h-16 mx-auto mb-3 rounded-lg ${own?'bg-gradient-to-br from-blue-500 to-purple-600':'bg-gray-700'} flex items-center justify-center shadow-lg"><span class="text-3xl">${own?'✨':'❓'}</span></div><p class="text-xs font-bold mb-2">${own?it.n:'???'}</p><div class="text-xs text-yellow-400 font-bold">⭐ ${it.p} pts</div></div>`;}).join('')}</div>`;}
-function ward(){const cats={hat:'Sombreros',glasses:'Lentes',accessory:'Accesorios',effect:'Efectos'};let h='<h1 class="text-3xl font-bold mb-6 text-center">👔 Vestidor</h1>';Object.keys(cats).forEach(cat=>{const its=DB.filter(c=>c.c===cat&&S.own.includes(c.i));if(its.length>0){h+=`<div class="mb-6"><h2 class="text-xl font-bold mb-3 text-purple-400">${cats[cat]} (${its.length})</h2><div class="grid grid-cols-2 gap-3">`;its.forEach(it=>{const eq=S.eq[cat]===it.i;h+=`<div onclick="equip(${it.i})" class="card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 r-${it.r} ${eq?'ring-4 ring-purple-500':''}"><div class="w-16 h-16 mx-auto mb-3 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"><span class="text-3xl">✨</span></div><p class="text-xs font-bold mb-2">${it.n}</p><button class="w-full mt-2 py-2 rounded-lg text-xs font-bold transition ${eq?'bg-purple-600':'bg-gray-700 hover:bg-gray-600'}">${eq?'✓ Equipado':'Equipar'}</button></div>`;});h+='</div></div>';}});if(S.own.length===0)h+='<div class="text-center py-12 text-gray-400"><p class="text-6xl mb-4">🛍️</p><p class="text-lg">¡Aún no tienes cosméticos!</p><p class="text-sm mt-2">Visita la tienda para comprar</p></div>';return h;}
-function shop(){return`<h1 class="text-3xl font-bold mb-6 text-center">🛍️ Tienda de Cosméticos</h1><div class="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl p-4 mb-6 text-center border border-purple-500/30"><p class="text-lg font-bold text-purple-300">💎 ${DB.length} Cosméticos Disponibles</p><p class="text-sm text-gray-300 mt-1">Colecciona todos los items</p></div><div class="grid grid-cols-2 gap-3">${DB.map(it=>{const own=S.own.includes(it.i);const can=S.pts>=it.p;return`<div class="card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 r-${it.r} shadow-lg ${own?'opacity-60':''}"><div class="text-xs font-bold mb-2 ${it.r==='legendary'?'text-yellow-400':it.r==='epic'?'text-purple-400':it.r==='rare'?'text-blue-400':'text-gray-400'}">${it.r.toUpperCase()}</div><div class="w-16 h-16 mx-auto mb-3 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"><span class="text-3xl">✨</span></div><p class="text-xs font-bold mb-2">${it.n}</p><div class="flex items-center justify-center gap-1 mb-3 text-yellow-400 font-bold"><span>⭐</span><span>${it.p}</span></div>${own?'<button disabled class="w-full py-2 bg-green-600/50 rounded-lg text-xs font-bold cursor-not-allowed">✓ Comprado</button>':`<button onclick="buy(${it.i})" ${!can?'disabled':''} class="w-full py-2 rounded-lg text-xs font-bold transition ${can?'bg-blue-600 hover:bg-blue-700 active:scale-95':'bg-gray-600 cursor-not-allowed opacity-50'}">${can?'Comprar':'Sin puntos'}</button>`}</div>`;}).join('')}</div>`;}
-function render(){document.getElementById('app').innerHTML=S.pg==='home'?home():S.pg==='pokedex'?pdx():S.pg==='wardrobe'?ward():shop();}
-load();page('home');
-    </script>
+
+let state={streak:0,pts:0,last:null,missions:[{id:1,time:‘12:00’,done:false,label:‘Mediodía’,h:12},{id:2,time:‘15:00’,done:false,label:‘Tarde’,h:15},{id:3,time:‘22:00’,done:false,label:‘Noche’,h:22}],own:[],eq:{hat:null,glasses:null,accessory:null,effect:null,color:null},music:false,page:‘home’,filter:‘all’,name:‘Mi Muela’,clickCount:0,showSecretMenu:false,unlockedColors:[]};
+
+const audio=new Audio(‘https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3’);
+audio.loop=true;
+audio.volume=0.3;
+
+let timer;
+let clickTimer;
+
+function loadData(){
+const saved=localStorage.getItem(‘brackets-v7’);
+if(saved){
+state={…state,…JSON.parse(saved)};
+checkNewDay();
+}
+}
+
+function saveData(){
+localStorage.setItem(‘brackets-v7’,JSON.stringify(state));
+}
+
+function checkNewDay(){
+const today=new Date().toDateString();
+if(state.last&&state.last!==today){
+const lastDate=new Date(state.last);
+const todayDate=new Date(today);
+const diffDays=Math.floor((todayDate-lastDate)/(1000*60*60*24));
+if(diffDays>1){
+state.streak=0;
+}
+state.missions.forEach(m=>m.done=false);
+saveData();
+}
+}
+
+function changePage(p){
+state.page=p;
+document.querySelectorAll(’[id^=“tab-”]’).forEach(b=>b.classList.remove(‘tab-active’));
+document.getElementById(‘tab-’+p).classList.add(‘tab-active’);
+render();
+if(p===‘home’){
+startTimer();
+}else{
+stopTimer();
+}
+}
+
+function startTimer(){
+stopTimer();
+timer=setInterval(()=>{
+const el=document.getElementById(‘timer’);
+if(el)el.textContent=getMidnight();
+},1000);
+}
+
+function stopTimer(){
+if(timer)clearInterval(timer);
+}
+
+function toggleMusic(){
+state.music?audio.pause():audio.play().catch(()=>{});
+state.music=!state.music;
+render();
+}
+
+function getTimeLeft(h){
+const now=new Date();
+const target=new Date();
+target.setHours(h,0,0,0);
+if(now>target)target.setDate(target.getDate()+1);
+const diff=target-now;
+const hours=Math.floor(diff/3600000);
+const mins=Math.floor((diff%3600000)/60000);
+return hours+’h ’+mins+‘m’;
+}
+
+function getMidnight(){
+const now=new Date();
+const midnight=new Date();
+midnight.setHours(24,0,0,0);
+const diff=midnight-now;
+const h=Math.floor(diff/3600000);
+const m=Math.floor((diff%3600000)/60000);
+const s=Math.floor((diff%60000)/1000);
+return h+’h ’+m+’m ’+s+‘s’;
+}
+
+function completeMission(id){
+const mission=state.missions.find(m=>m.id===id);
+if(!mission.done){
+mission.done=true;
+state.pts+=10;
+const today=new Date().toDateString();
+const allDone=state.missions.every(m=>m.done);
+if(allDone&&state.last!==today){
+state.streak++;
+state.last=today;
+}
+saveData();
+render();
+}
+}
+
+function resetStreak(){
+if(confirm(’¿Reiniciar racha a 0?’)){
+state.streak=0;
+saveData();
+render();
+}
+}
+
+function buyItem(id){
+const item=DB.find(i=>i.i===id);
+if(item&&state.pts>=item.p&&!state.own.includes(id)){
+state.pts-=item.p;
+state.own.push(id);
+saveData();
+render();
+}
+}
+
+function equipItem(id){
+const item=DB.find(i=>i.i===id);
+const color=COLORS.find(i=>i.i===id);
+
+```
+if(color){
+    state.eq.color=state.eq.color===id?null:id;
+    saveData();
+    render();
+    return;
+}
+
+if(!item||!state.own.includes(id))return;
+state.eq[item.c]=state.eq[item.c]===id?null:id;
+saveData();
+render();
+```
+
+}
+
+function unlockColor(id){
+if(!state.unlockedColors.includes(id)){
+state.unlockedColors.push(id);
+state.eq.color=id;
+saveData();
+}
+state.showSecretMenu=false;
+render();
+}
+
+function handleMolarClick(){
+state.clickCount++;
+if(clickTimer)clearTimeout(clickTimer);
+
+```
+if(state.clickCount>=3){
+    state.showSecretMenu=true;
+    state.clickCount=0;
+    render();
+}else{
+    clickTimer=setTimeout(()=>{
+        state.clickCount=0;
+    },1000);
+}
+```
+
+}
+
+function closeSecretMenu(){
+state.showSecretMenu=false;
+render();
+}
+
+function setFilter(f){
+state.filter=f;
+render();
+}
+
+function changeName(){
+const newName=prompt(’¿Cómo quieres llamar a tu muela?’,state.name);
+if(newName&&newName.trim()){
+state.name=newName.trim();
+saveData();
+render();
+}
+}
+
+function getHatSVG(id){
+if(id===1)return’<rect x="-30" y="-5" width="60" height="15" rx="3" fill="#dc2626"/><ellipse cx="0" cy="-5" rx="25" ry="8" fill="#b91c1c"/>’;
+if(id===2)return’<path d="M-35 0Q-30-15-20-20L20-20Q30-15 35 0L30 5Q25 0 0 0Q-25 0-30 5Z" fill="#8b4513"/><ellipse cx="0" cy="0" rx="38" ry="8" fill="#654321"/>’;
+if(id===3)return’<path d="M-25-5L-20-25L-10-30L0-35L10-30L20-25L25-5L20 0L10-5L0-3L-10-5L-20 0Z" fill="#fbbf24"/><circle cx="-12" cy="-18" r="3" fill="#ef4444" class="sparkle"/><circle cx="12" cy="-18" r="3" fill="#3b82f6" class="sparkle"/>’;
+if(id===4)return’<ellipse cx="0" cy="5" rx="30" ry="6" fill="#1f2937"/><rect x="-15" y="-25" width="30" height="30" rx="15" fill="#111827"/>’;
+if(id===5)return’<path d="M-25 0Q-25-20-15-25L-10-30L0-35L10-30L15-25Q25-20 25 0Z" fill="#f8f8f8"/><rect x="-3" y="-38" width="6" height="8" fill="#f8f8f8"/>’;
+if(id===13)return’<ellipse cx="0" cy="0" rx="38" ry="10" fill="#fef3c7"/><path d="M-32 0Q-28-10-18-12L18-12Q28-10 32 0" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>’;
+return’<ellipse cx="0" cy="0" rx="28" ry="8" fill="#6b7280"/>’;
+}
+
+function getAccessorySVG(id){
+if(id===41)return’<ellipse cx="0" cy="0" rx="15" ry="8" fill="#dc2626"/><ellipse cx="-12" cy="0" rx="8" ry="12" fill="#b91c1c"/><ellipse cx="12" cy="0" rx="8" ry="12" fill="#b91c1c"/>’;
+if(id===42)return’<circle cx="0" cy="-5" r="4" fill="#f8f8f8"/><circle cx="-8" cy="0" r="4" fill="#f8f8f8"/><circle cx="8" cy="0" r="4" fill="#f8f8f8"/><circle cx="-4" cy="5" r="4" fill="#f8f8f8"/><circle cx="4" cy="5" r="4" fill="#f8f8f8"/>’;
+if(id===43)return’<rect x="-25" y="-4" width="50" height="6" fill="#dc2626"/><rect x="-25" y="2" width="50" height="6" fill="#f8f8f8"/>’;
+if(id===48)return’<path d="M-30 0Q-25-18-10-22L-6-12L0-8L6-12L10-22Q25-18 30 0L18 10L0 6L-18 10Z" fill="#f8f8f8"/>’;
+if(id===49)return’<path d="M-6 0L-18 22L-14 28Q-8 24 0 22Q8 24 14 28L18 22L6 0Z" fill="#dc2626"/><rect x="-8" y="-2" width="16" height="4" fill="#7c2d12"/>’;
+return’<rect x="-15" y="0" width="30" height="8" fill="#3b82f6" rx="2"/>’;
+}
+
+function drawMolar(){
+const happy=state.missions.filter(m=>m.done).length>=2;
+const hat=state.eq.hat?DB.find(i=>i.i===state.eq.hat):null;
+const accessory=state.eq.accessory?DB.find(i=>i.i===state.eq.accessory):null;
+const effect=state.eq.effect?DB.find(i=>i.i===state.eq.effect):null;
+const colorScheme=state.eq.color?COLORS.find(c=>c.i===state.eq.color):null;
+
+```
+const molarGradient=colorScheme?colorScheme.gradient:'linear-gradient(135deg, #fff 0%, #f5f5f5 100%)';
+const molarColor=colorScheme?colorScheme.color:'#fff';
+
+return `<div class="relative flex flex-col items-center ${happy?'molar-happy':''}">
+    <button onclick="changeName()" class="mb-3 px-5 py-2 bg-purple-600 hover:bg-purple-700 rounded-full text-sm font-bold transition active:scale-95 shadow-lg">
+        ✏️ ${state.name}
+    </button>
+    <div class="relative" onclick="handleMolarClick()" style="cursor:pointer">
+        <svg width="200" height="240" viewBox="0 0 200 240" class="drop-shadow-2xl relative z-20">
+            <defs>
+                <linearGradient id="tg">
+                    <stop offset="0%" stop-color="${molarColor}"/>
+                    <stop offset="100%" stop-color="${molarColor}" stop-opacity="0.8"/>
+                </linearGradient>
+                <radialGradient id="sh">
+                    <stop offset="0%" stop-color="#fff" stop-opacity=".6"/>
+                    <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+            ${effect?`<g opacity="0.5" class="floating"><ellipse cx="100" cy="120" rx="90" ry="80" fill="${effect.i===51?'#f97316':effect.i===52?'#fbbf24':'#a855f7'}" opacity="0.3"/></g>`:''}
+            <ellipse cx="100" cy="220" rx="80" ry="15" fill="#000" opacity=".2"/>
+            <path d="M60 40Q50 45 45 60L45 130Q45 150 55 165L70 190Q75 200 80 200Q85 210 90 210L110 210Q115 210 120 200Q125 200 130 190L145 165Q155 150 155 130L155 60Q150 45 140 40Q130 35 120 35L80 35Q70 35 60 40" fill="url(#tg)" stroke="${colorScheme?molarColor:'#e5e5e5'}" stroke-width="3" style="${colorScheme?'filter: drop-shadow(0 0 10px '+molarColor+')':''}"/>
+            ${colorScheme?'':'<ellipse cx="70" cy="70" rx="25" ry="40" fill="url(#sh)"/><ellipse cx="130" cy="70" rx="25" ry="40" fill="url(#sh)"/>'}
+            <path d="M75 90L85 110L75 130L65 110Z" fill="${colorScheme?molarColor:'#f0f0f0'}" stroke="${colorScheme?'none':'#ddd'}"/>
+            <path d="M95 90L105 110L95 130L85 110Z" fill="${colorScheme?molarColor:'#f0f0f0'}" stroke="${colorScheme?'none':'#ddd'}"/>
+            <path d="M115 90L125 110L115 130L105 110Z" fill="${colorScheme?molarColor:'#f0f0f0'}" stroke="${colorScheme?'none':'#ddd'}"/>
+            <path d="M135 90L145 110L135 130L125 110Z" fill="${colorScheme?molarColor:'#f0f0f0'}" stroke="${colorScheme?'none':'#ddd'}"/>
+            <g transform="translate(100,100)">
+                <rect x="-35" y="-15" width="30" height="25" rx="8" fill="none" stroke="#666" stroke-width="3"/>
+                <rect x="5" y="-15" width="30" height="25" rx="8" fill="none" stroke="#666" stroke-width="3"/>
+                <line x1="-5" y1="-2" x2="5" y2="-2" stroke="#666" stroke-width="3"/>
+            </g>
+            <circle cx="75" cy="100" r="6" fill="#333"/>
+            <circle cx="125" cy="100" r="6" fill="#333"/>
+            ${happy?'<path d="M75 135Q100 150 125 135" stroke="#333" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="55" cy="115" r="12" fill="#ffb3ba" opacity=".6"/><circle cx="145" cy="115" r="12" fill="#ffb3ba" opacity=".6"/>':'<line x1="75" y1="135" x2="125" y2="135" stroke="#333" stroke-width="5" stroke-linecap="round"/>'}
+        </svg>
+        ${hat?`<div class="absolute -top-12 left-1/2 -translate-x-1/2 z-30">
+            <svg width="80" height="50" viewBox="-40 -40 80 20">
+                ${getHatSVG(hat.i)}
+            </svg>
+        </div>`:''}
+        ${accessory?`<div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-30">
+            <svg width="80" height="40" viewBox="-40 -10 80 40">
+                ${getAccessorySVG(accessory.i)}
+            </svg>
+        </div>`:''}
+    </div>
+    ${state.showSecretMenu?`
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onclick="closeSecretMenu()">
+            <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 max-w-sm w-full border-2 border-purple-500 shadow-2xl" onclick="event.stopPropagation()">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-purple-400">🎨 Colores Secretos</h2>
+                    <button onclick="closeSecretMenu()" class="text-2xl hover:scale-110 transition">✕</button>
+                </div>
+                <p class="text-sm text-gray-400 mb-4">¡Descubre colores únicos para tu muela!</p>
+                <div class="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                    ${COLORS.map(color=>`
+                        <div onclick="unlockColor(${color.i})" class="card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 border-purple-500 hover:border-purple-300">
+                            <div class="w-16 h-16 mx-auto mb-3 rounded-full shadow-xl" style="background:${color.gradient}"></div>
+                            <p class="text-xs font-bold">${color.n}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `:''}
+</div>`;
+```
+
+}
+
+function renderHome(){
+const happy=state.missions.filter(m=>m.done).length>=2;
+return `
+<div class="flex justify-between items-center mb-4">
+<div class="flex items-center gap-2">
+<span class="text-3xl">🏆</span>
+<span class="text-2xl font-bold">${state.streak}</span>
+<span class="text-sm text-gray-400">días</span>
+</div>
+<div class="flex items-center gap-3">
+<button onclick="toggleMusic()" class="p-2 bg-gray-800 rounded-full text-2xl hover:bg-gray-700 transition">
+${state.music?‘🔊’:‘🔇’}
+</button>
+<div class="flex items-center gap-2">
+<span class="text-3xl">⭐</span>
+<span class="text-2xl font-bold">${state.pts}</span>
+</div>
+</div>
+</div>
+
+```
+    <div class="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl p-3 mb-4 text-center border border-purple-500/30">
+        <p class="text-sm text-gray-300">⏰ Reinicio de misiones en</p>
+        <p class="text-xl font-bold text-purple-300" id="timer">${getMidnight()}</p>
+    </div>
+    
+    <button onclick="resetStreak()" class="w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-bold py-4 rounded-2xl mb-6 flex items-center justify-center gap-2 shadow-xl hover:from-red-700 hover:to-red-800 transition active:scale-95">
+        <span class="text-2xl">⚠️</span>
+        <span>¡Bracket caído!</span>
+    </button>
+    
+    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 mb-6 shadow-2xl">
+        ${drawMolar()}
+        <p class="mt-6 text-xl text-center font-bold">
+            ${happy?'¡'+state.name+' está feliz! 😊✨':'¡Completa tus misiones! 🦷'}
+        </p>
+    </div>
+    
+    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 shadow-xl">
+        <h2 class="text-2xl font-bold mb-4">⏰ Misiones del Día</h2>
+        <div class="space-y-3">
+            ${state.missions.map(m=>`
+                <div class="flex items-center justify-between p-4 rounded-xl ${m.done?'bg-green-900/40 border-2 border-green-500':'bg-gray-700/50'}">
+                    <div class="flex-1">
+                        <p class="font-bold text-lg">${m.label}</p>
+                        <p class="text-sm text-gray-400">${m.time} · Quedan ${getTimeLeft(m.h)}</p>
+                    </div>
+                    <button onclick="completeMission(${m.id})" ${m.done?'disabled':''} 
+                        class="px-5 py-2 rounded-xl font-bold text-sm transition ${m.done?'bg-green-600 cursor-not-allowed':'bg-blue-600 hover:bg-blue-700 active:scale-95'}">
+                        ${m.done?'✓ Hecho':'Completar'}
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+    </div>
+`;
+```
+
+}
+
+function renderCloset(){
+const cats={all:‘Todos’,hat:‘Sombreros’,glasses:‘Lentes’,accessory:‘Accesorios’,effect:‘Efectos’,color:‘Colores’};
+
+```
+let allItems=[...DB];
+if(state.unlockedColors.length>0){
+    const unlockedColorItems=COLORS.filter(c=>state.unlockedColors.includes(c.i));
+    allItems=[...allItems,...unlockedColorItems];
+}
+
+const filtered=state.filter==='all'?allItems:allItems.filter(i=>i.c===state.filter);
+const owned=filtered.filter(i=>state.own.includes(i.i)||state.unlockedColors.includes(i.i));
+const locked=filtered.filter(i=>!state.own.includes(i.i)&&!state.unlockedColors.includes(i.i));
+
+return `
+    <div class="mb-6">
+        ${drawMolar()}
+    </div>
+    
+    <div class="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl p-4 mb-4 text-center border border-purple-500/30">
+        <p class="text-2xl font-bold text-purple-300">${state.own.length+state.unlockedColors.length}/${DB.length+COLORS.length}</p>
+        <p class="text-sm">Cosméticos desbloqueados</p>
+    </div>
+    
+    <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+        ${Object.keys(cats).map(k=>`
+            <button onclick="setFilter('${k}')" class="px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap transition ${state.filter===k?'bg-purple-600':'bg-gray-800 hover:bg-gray-700'}">
+                ${cats[k]}
+            </button>
+        `).join('')}
+    </div>
+    
+    ${owned.length>0?`
+        <h3 class="text-lg font-bold text-green-400 mb-3">✓ Desbloqueados</h3>
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            ${owned.map(item=>{
+                const equipped=item.c==='color'?state.eq.color===item.i:state.eq[item.c]===item.i;
+                return `
+                    <div onclick="equipItem(${item.i})" class="card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 ${item.c==='color'?'border-purple-500':'r-'+item.r} ${equipped?'ring-4 ring-purple-500 bg-purple-900/30':''}">
+                        ${item.c==='color'?
+                            `<div class="w-16 h-16 mx-auto mb-3 rounded-full shadow-xl" style="background:${item.gradient}"></div>`:
+                            `<div class="w-16 h-16 mx-auto mb-3 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                <span class="text-3xl">✨</span>
+                            </div>`
+                        }
+                        <p class="text-xs font-bold mb-1">${item.n}</p>
+                        ${item.c!=='color'?`<div class="text-xs ${item.r==='legendary'?'text-yellow-400':item.r==='epic'?'text-purple-400':item.r==='rare'?'text-blue-400':'text-gray-400'} mb-2">
+                            ${item.r.toUpperCase()}
+                        </div>`:'<div class="text-xs text-purple-400 mb-2">SECRETO</div>'}
+                        <div class="px-2 py-1 rounded-lg text-xs font-bold ${equipped?'bg-purple-600':'bg-gray-700'}">
+                            ${equipped?'✓ Equipado':'Tocar para equipar'}
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `:''}
+    
+    ${locked.length>0?`
+        <h3 class="text-lg font-bold text-gray-500 mb-3">🔒 Bloqueados</h3>
+        <div class="grid grid-cols-2 gap-3">
+            ${locked.map(item=>`
+                <div class="card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 ${item.c==='color'?'border-gray-600':'r-'+item.r} opacity-50 grayscale">
+                    <div class="w-16 h-16 mx-auto mb-3 rounded-lg bg-gray-700 flex items-center justify-center shadow-lg">
+                        <span class="text-3xl">🔒</span>
+                    </div>
+                    <p class="text-xs font-bold mb-1">???</p>
+                    <div class="text-xs text-gray-400 mb-2">BLOQUEADO</div>
+                    ${item.c!=='color'?`<div class="text-xs text-yellow-400 font-bold">⭐ ${item.p} pts</div>`:'<div class="text-xs text-purple-400 font-bold">SECRETO</div>'}
+                </div>
+            `).join('')}
+        </div>
+    `:''}
+`;
+```
+
+}
+
+function renderShop(){
+return `<h1 class="text-3xl font-bold mb-6 text-center">🛍️ Tienda de Cosméticos</h1> <div class="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl p-4 mb-6 text-center border border-purple-500/30"> <p class="text-lg font-bold text-purple-300">💎 ${DB.length} Cosméticos Disponibles</p> <p class="text-sm text-gray-300 mt-1">Colecciona todos los items</p> </div> <div class="grid grid-cols-2 gap-3"> ${DB.map(item=>{ const owned=state.own.includes(item.i); const canBuy=state.pts>=item.p; return`
+<div class="card bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center border-2 r-${item.r} shadow-lg ${owned?'opacity-60':''}">
+<div class="text-xs font-bold mb-2 ${item.r==='legendary'?'text-yellow-400':item.r==='epic'?'text-purple-400':item.r==='rare'?'text-blue-400':'text-gray-400'}">
+${item.r.toUpperCase()}
+</div>
+<div class="w-16 h-16 mx-auto mb-3 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+<span class="text-3xl">✨</span>
+</div>
+<p class="text-xs font-bold mb-2">${item.n}</p>
+<div class="flex items-center justify-center gap-1 mb-3 text-yellow-400 font-bold">
+<span>⭐</span>
+<span>${item.p}</span>
+</div>
+${owned?
+‘<button disabled class="w-full py-2 bg-green-600/50 rounded-lg text-xs font-bold cursor-not-allowed">✓ Comprado</button>’:
+`<button onclick="buyItem(${item.i})" ${!canBuy?'disabled':''} class="w-full py-2 rounded-lg text-xs font-bold transition ${canBuy?'bg-blue-600 hover:bg-blue-700 active:scale-95':'bg-gray-600 cursor-not-allowed opacity-50'}">${canBuy?'Comprar':'Sin puntos'}</button>`
+}
+</div>
+`; }).join('')} </div> `;
+}
+
+function render(){
+const pages={home:renderHome,closet:renderCloset,shop:renderShop};
+document.getElementById(‘app’).innerHTML=pages[state.page]();
+}
+
+loadData();
+changePage(‘home’);
+</script>
+
 </body>
 </html>
